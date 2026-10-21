@@ -20,8 +20,8 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
-# YES PDF!
--keep class com.aaron.yespdf.common.event.RecentPDFEvent { *; }
+# xPDF
+-keep class com.sigpher.xpdf.common.event.RecentPDFEvent { *; }
 
 # AndroidPdfViewer
 -keep class com.shockwave.**
@@ -41,31 +41,8 @@ public static java.lang.String TABLENAME;
 # If you do not use RxJava:
 #-dontwarn rx.**
 
-# umeng
--keep class com.umeng.** {*;}
-
--keep class com.uc.** {*;}
-
--keepclassmembers class * {
-   public <init> (org.json.JSONObject);
-}
--keepclassmembers enum * {
-    public static **[] values();
-    public static ** valueOf(java.lang.String);
-}
--keep class com.zui.** {*;}
--keep class com.miui.** {*;}
--keep class com.heytap.** {*;}
--keep class a.** {*;}
--keep class com.vivo.** {*;}
-
-# Bugly
--dontwarn com.tencent.bugly.**
--keep public class com.tencent.bugly.**{*;}
+# support library
 -keep class android.support.**{*;}
-# tinker混淆规则
--dontwarn com.tencent.tinker.**
--keep class com.tencent.tinker.** { *; }
 
 # ============================== 基本不用动区域 begin ==============================
 
@@ -92,7 +69,6 @@ public static java.lang.String TABLENAME;
 # 包含有类名->混淆后类名的映射关系
 # 然后使用printmapping指定映射文件的名称
 -verbose
--printmapping proguardMapping.txt
 # 指定混淆时采用的算法，后面的参数是一个过滤器
 # 这个过滤器是谷歌推荐的算法，一般不改变
 -optimizations !code/simplification/cast,!field/*,!class/merging/*

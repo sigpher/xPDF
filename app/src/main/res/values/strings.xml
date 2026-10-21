@@ -1,7 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <string name="app_name_en" translatable="false">YES PDF</string>
-    <string name="app_name_dev" translatable="false">DEV PDF</string>
+    <string name="app_name_en" translatable="false">xPDF</string>
+    <string name="app_name_dev" translatable="false">xPDF Dev</string>
     <string name="app_recent">Recent</string>
     <string name="app_all">All</string>
     <string name="app_auto_scan">Automatic</string>
@@ -30,15 +30,8 @@
     <string name="app_whether_delete_collection">This operation will delete %d collections (including all book information in the collection, etc. without affecting the source files). Do you want to continue?</string>
     <string name="app_delete_local_files">Delete local files</string>
     <string name="app_delete">Delete</string>
-    <string name="app_wechat_pay">WeChat Payment</string>
-    <string name="app_gift_description">If you think it is good to use, welcome to donate!\n\nIf the picture is not saved, please click "Open QR code".\n\nLook for「aaronzzx」when paying</string>
-    <string name="app_open_qrcode">Open QR Code</string>
-    <string name="app_open_wechat_scanner">WeChat Scanning</string>
-    <string name="app_screenshot">Take a screenshot and enter the WeChat to scan the code, or use another phone to scan the code</string>
-    <string name="app_wechat_scan_notice">Select the payment code from the WeChat album</string>
     <string name="app_not_support_empty_string">Null characters are not supported</string>
     <string name="app_regrouping">Regroup</string>
-    <string name="app_group">Grouping</string>
     <string name="app_exist_group">Existing Group</string>
     <string name="app_have_no_group">No group information</string>
     <string name="app_have_no_file">No file information</string>
@@ -50,11 +43,6 @@
     <string name="app_importing">Importing「%s」</string>
     <string name="app_import_progress">%d / %d</string>
     <string name="app_stop_import">Stop Importing</string>
-    <string name="app_email_app_not_found">Cannot find mailbox application</string>
-    <string name="app_db_is_upgrading">Database upgrading…</string>
-    <string name="app_auto_scroll_tips">1. Click the volume button to call up the menu\n2. Click the screen to pause and start\n3. Drag the bottom progress bar to change the scroll speed</string>
-    <string name="app_got_it">Got it</string>
-    <string name="app_not_support_shortcut">Does not support shortcuts below Android 7.1</string>
     <string name="app_not_support_launcher_shortcut">Does not support creating desktop shortcuts below Android 8.0</string>
     <string name="app_shortcut_max">Only select %d PDF(s) at a time for shortcut creation</string>
     <string name="app_first_create_shortcut_tips">If the shortcut is not created successfully, please check whether the shortcut permission is turned on</string>
@@ -69,7 +57,7 @@
     <string name="app_backup_completed">Backup completed, Total: %d, Failed: %d</string>
     <string name="app_recovery_completed">Restore completed, Total: %d, Failed: %d</string>
     <string name="app_backup_select_must_not_be_empty">Please select a group first</string>
-    <string name="app_backup_tips">1. The backup file is stored in /storage/emulated/0/Android/data/com.aaron.yespdf/files, please move to another place to avoid the loss of backup due to application data cleaning\n2. When restoring files, also put the backup file in the original directory, and then click the button to restore\n3. Please do not edit the file to avoid data corruption</string>
+    <string name="app_backup_tips">1. The backup file is stored in /storage/emulated/0/Android/data/com.sigpher.xpdf/files, please move to another place to avoid the loss of backup due to application data cleaning\n2. When restoring files, also put the backup file in the original directory, and then click the button to restore\n3. Please do not edit the file to avoid data corruption</string>
     <string name="app_about">About</string>
     <string name="app_settings">Settings</string>
     <string name="app_previous_chapter">Prev</string>
@@ -82,29 +70,18 @@
     <string name="app_bookmark">Bookmark</string>
     <string name="app_have_no_add_bookmark">No bookmarks</string>
     <string name="app_have_no_recent">No reading history</string>
-    <string name="app_search_null">No files found</string>
     <string name="app_search">Search</string>
     <string name="app_have_no_all">No files added</string>
-    <string name="app_auto_scroll">Auto Scroll</string>
     <string name="app_total">Total %d</string>
     <string name="app_already_read">Progress %s</string>
     <string name="app_item">%d item&#160; - &#160;</string>
-    <string name="app_horizontal_does_not_support_auto_scroll">Horizontal reading does not support automatic scrolling</string>
-    <string name="app_scroll_velocity">Scrolling Speed</string>
-    <string name="app_cur_level">Current Level：%d</string>
     <string name="app_show_status_bar">Show status bar</string>
     <string name="app_click_flip_page">Click to turn pages</string>
     <string name="app_keep_screen_on">Screen always on</string>
     <string name="app_linear_layout">Linear Layout</string>
     <string name="app_scroll_shortcut">Quick Zoom</string>
-    <string name="app_global_grey">Global Grayscale (Experimental)</string>
-    <string name="app_hide_scroll_level_bar">Hide scroll level bar</string>
     <string name="app_max_recent_count">Recent Display Count</string>
     <string name="app_lock_landscape">Lock Landscape</string>
-    <string name="app_export_image">Export Picture</string>
-    <string name="app_clip">Clip</string>
-    <string name="app_export_image_succeed">The export is successful, and the picture is saved in the root directory /Pictures/YESPDF</string>
-    <string name="app_not_support_external_open">No support for external resources</string>
 
     <string name="app_delete_completed">Deleted successfully</string>
     <string name="app_import_need_storage_permission">Import files requires storage permission :)</string>
@@ -112,23 +89,10 @@
     <string name="app_import_file">Import</string>
     <string name="app_storage_device">Storage</string>
     <string name="app_have_not_select">No file selected yet~</string>
-    <string name="app_import_success">Import succeeded</string>
-    <string name="app_import_failure">Import failed</string>
     <string name="app_wait_a_moment">Wait a moment…</string>
-    <string name="app_overview">Overview</string>
     <string name="app_open_source">Open Source Libraries</string>
-    <string name="app_introduce">Introduction</string>
-    <string name="app_feedback">Feedback</string>
-    <string name="app_source_code">Source Code</string>
-    <string name="app_github" translatable="false">GitHub</string>
-    <string name="app_rate_app">Rate App</string>
-    <string name="app_gift">Donate(WeChat)</string>
-    <string name="app_feedback_title">Please describe your problem or suggestion in as much detail as possible, and do not delete or modify the following device information.</string>
-    <string name="app_have_no_install_coolapk">Please install CoolAPK client first</string>
-    <string name="app_have_no_install_wechat">Please install WeChat client first</string>
 
     <!-- 设置项 -->
-    <string name="app_color_reverse">Color Inversion</string>
     <string name="app_volume_control">Volume keys to turn pages</string>
 
     <string-array name="max_recent_count" tools:ignore="ResourceName">

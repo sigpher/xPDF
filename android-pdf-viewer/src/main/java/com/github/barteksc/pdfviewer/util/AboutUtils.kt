@@ -17,7 +17,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 
 /**
- * @author Aaron aaronzzxup@gmail.com
+ * @author sigpher
  */
 internal object AboutUtils {
     fun openCoolApk(context: Context, selfPkg: String) {
@@ -52,7 +52,7 @@ internal object AboutUtils {
     fun copyImageToDevice(
             context: Context,
             bitmap: Bitmap,
-            savePath: String = "${PathUtils.getExternalAppCachePath()}/yespdf-gift.jpg"
+            savePath: String = "${PathUtils.getExternalAppCachePath()}/xpdf-gift.jpg"
     ) {
         val file = File(savePath)
         file.mkdirs()
@@ -71,7 +71,7 @@ internal object AboutUtils {
                 e.printStackTrace()
             }
         }
-        notifyMedia(context, file.absolutePath, "com.aaron.yespdf.fileprovider")
+        notifyMedia(context, file.absolutePath, "${context.packageName}.fileprovider")
     }
 
     private fun notifyMedia(context: Context, path: String, authority: String) {

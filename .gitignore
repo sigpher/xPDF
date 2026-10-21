@@ -63,3 +63,12 @@ fastlane/Preview.html
 fastlane/screenshots
 fastlane/test_output
 fastlane/readme.md
+
+# 构建产物与发布中间件（不入库）
+.codebuddy/
+app/release/
+mapping.txt
+proguardMapping.txt
+resources.txt
+*.plantuml
+!xPDF.plantuml

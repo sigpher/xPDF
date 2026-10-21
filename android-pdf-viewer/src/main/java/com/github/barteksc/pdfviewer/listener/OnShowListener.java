@@ -1,7 +1,7 @@
 package com.github.barteksc.pdfviewer.listener;
 
 /**
- * @author Aaron aaronzzxup@gmail.com
+ * @author sigpher
  */
 public interface OnShowListener {
 
