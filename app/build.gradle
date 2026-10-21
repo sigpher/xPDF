@@ -17,6 +17,8 @@ android {
         versionName "3.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
+        // 只保留中英文资源，裁掉三方库带入的其他语言，缩小 resources.arsc
+        resourceConfigurations += ['en', 'zh']
 
         ndk {
             // 仅保留 arm64-v8a，减小包体
@@ -85,6 +87,8 @@ android {
         abortOnError false
     }
 
+
+
     packagingOptions {
         resources {
             excludes += ['META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/LICENSE.txt',
@@ -99,6 +103,8 @@ dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
     // 仅需要 ViewPager（原 legacy-support-v4 已无用）
     implementation 'androidx.viewpager:viewpager:1.0.0'
+    // SAF 目录树导入需要遍历 DocumentFile
+    implementation 'androidx.documentfile:documentfile:1.0.1'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test:runner:1.5.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'

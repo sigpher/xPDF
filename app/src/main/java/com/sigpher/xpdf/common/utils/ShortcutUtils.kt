@@ -70,8 +70,9 @@ object ShortcutUtils {
                 build()
             }
             val pinnedShortcutCallbackIntent = shortcutManager.createShortcutResultIntent(pinShortcutInfo)
+            // Android 12+ 要求显式声明可变性，这里不需要回调修改 Intent
             val successCallback = PendingIntent.getBroadcast(context, 0,
-                    pinnedShortcutCallbackIntent, 0)
+                    pinnedShortcutCallbackIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             return shortcutManager.requestPinShortcut(pinShortcutInfo, successCallback.intentSender)
         }
         return false

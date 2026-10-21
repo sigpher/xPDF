@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <external-path name="xpdf" path="" />
+    <!-- 只暴露应用自己的外部私有目录与缓存目录，不再暴露整张外部存储 -->
+    <external-files-path name="xpdf" path="" />
+    <cache-path name="xpdf_cache" path="" />
 </paths>

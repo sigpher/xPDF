@@ -46,6 +46,9 @@
     <string name="app_first_create_shortcut_tips">如果快捷方式未创建成功，请检查是否已打开快捷方式权限</string>
 
     <string name="app_import">导入</string>
+    <string name="app_import_folder">导入文件夹</string>
+    <string name="app_legacy_missing_tips">有 %d 本书是旧版本导入的，已无法直接打开。请选择原目录重新导入一次（原有记录会保留）。</string>
+    <string name="app_import_failed">没有导入任何 PDF 文件</string>
     <string name="app_import_count">导入(%d)</string>
     <string name="app_selected_count">已选中(%d)</string>
     <string name="app_backup">备份</string>

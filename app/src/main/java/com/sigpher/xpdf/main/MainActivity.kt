@@ -4,8 +4,10 @@ import android.animation.Animator
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Rect
+import android.net.Uri
 import android.os.Bundle
 import android.os.Process
 import android.os.SystemClock
@@ -15,7 +17,9 @@ import android.widget.CheckBox
 import android.widget.PopupWindow
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -26,9 +30,9 @@ import com.sigpher.xpdf.common.*
 import com.sigpher.xpdf.common.bean.Backup
 import com.sigpher.xpdf.common.bean.Cover
 import com.sigpher.xpdf.common.event.ImportEvent
+import com.sigpher.xpdf.common.event.LegacyMissingEvent
 import com.sigpher.xpdf.common.utils.Base64
 import com.sigpher.xpdf.common.widgets.ImageTextView
-import com.sigpher.xpdf.filepicker.SelectActivity
 import com.sigpher.xpdf.settings.SettingsActivity
 import com.blankj.utilcode.constant.PermissionConstants
 import com.blankj.utilcode.util.*
@@ -52,6 +56,22 @@ class MainActivity : CommonActivity(), IMainView {
         MainPresenter(this)
     }
 
+    /** 系统文件选择器：一次可选多个 PDF，无需任何存储权限 */
+    private val importDocuments = registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+        if (uris.isNullOrEmpty()) {
+            return@registerForActivityResult
+        }
+        presenter.importUris(uris, getString(R.string.app_import))
+    }
+
+    /** 目录树导入：选中一个目录后批量导入其下全部 PDF */
+    private val importTree = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+        if (uri == null) {
+            return@registerForActivityResult
+        }
+        presenter.importTree(uri)
+    }
+
     private val pwMenu: PopupWindow by lazy(LazyThreadSafetyMode.NONE) {
         @SuppressLint("InflateParams")
         val pwView = LayoutInflater.from(this).inflate(R.layout.app_pw_main, null)
@@ -60,32 +80,18 @@ class MainActivity : CommonActivity(), IMainView {
         val tvSettings = pwView.findViewById<TextView>(R.id.app_tv_settings)
         val tvAbout = pwView.findViewById<TextView>(R.id.app_tv_about)
         PopupWindow(pwView).apply {
+            val tvImportFolder = pwView.findViewById<TextView>(R.id.app_tv_import_folder)
             tvImport.setOnClickListener {
-                PermissionUtils.permission(PermissionConstants.STORAGE)
-                        .callback(object : PermissionUtils.SimpleCallback {
-                            override fun onGranted() {
-                                SelectActivity.start(this@MainActivity, SELECT_REQUEST_CODE, DataManager.getPathList() as ArrayList<String?>)
-                            }
-
-                            override fun onDenied() {
-                                UiManager.showShort(R.string.app_import_need_storage_permission)
-                            }
-                        })
-                        .request()
                 dismiss()
+                importDocuments.launch(arrayOf(MIME_PDF))
+            }
+            tvImportFolder.setOnClickListener {
+                dismiss()
+                importTree.launch(null)
             }
             tvBackup.setOnClickListener {
-                PermissionUtils.permission(PermissionConstants.STORAGE)
-                        .callback(object : PermissionUtils.SimpleCallback {
-                            override fun onGranted() {
-                                createBackupDialog().show()
-                            }
-
-                            override fun onDenied() {
-                                UiManager.showShort(R.string.app_backup_need_storage_permission)
-                            }
-                        })
-                        .request()
+                // 备份写在应用外部私有目录，无需存储权限
+                createBackupDialog().show()
                 dismiss()
             }
             tvSettings.setOnClickListener {
@@ -174,16 +180,6 @@ class MainActivity : CommonActivity(), IMainView {
         shortcut(intent ?: return)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == SELECT_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            val pathList = data?.getStringArrayListExtra(SelectActivity.EXTRA_SELECTED)
-            val type = data?.getIntExtra(SelectActivity.EXTRA_TYPE, 0)
-            val groupName = data?.getStringExtra(SelectActivity.EXTRA_GROUP_NAME)
-            presenter.insertPDF(pathList, type, groupName)
-        }
-    }
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.app_main, menu)
         return true
@@ -229,6 +225,23 @@ class MainActivity : CommonActivity(), IMainView {
         }
         pbDialogProgress?.progress = event.curProgress
         tvDialogProgressInfo?.text = getString(R.string.app_import_progress, event.curProgress, event.totalProgress)
+    }
+
+    /**
+     * 旧版本录入的外部路径在新系统上已不可读，引导用户用"导入文件夹"重新导入一次。
+     * 只提示一次，且不删除任何书架记录。
+     */
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onLegacyMissingEvent(event: LegacyMissingEvent) {
+        if (event.count <= 0 || SPStaticUtils.getBoolean(SP_LEGACY_PROMPTED, false)) {
+            return
+        }
+        SPStaticUtils.put(SP_LEGACY_PROMPTED, true)
+        AlertDialog.Builder(this)
+                .setMessage(getString(R.string.app_legacy_missing_tips, event.count))
+                .setPositiveButton(R.string.app_import_folder) { _: DialogInterface, _: Int -> importTree.launch(null) }
+                .setNegativeButton(R.string.app_cancel, null)
+                .show()
     }
 
     fun injectOperation(fragment: IOperation) {
@@ -496,9 +509,10 @@ class MainActivity : CommonActivity(), IMainView {
 
     companion object {
         const val EXTRA_DIR_NAME = "EXTRA_DIR_NAME"
+        private const val MIME_PDF = "application/pdf"
+        private const val SP_LEGACY_PROMPTED = "SP_LEGACY_PROMPTED"
         private val BACKUP_PATH = "${PathUtils.getExternalAppDataPath()}/files"
         private const val SLEEP_TIME = 1000L
-        private const val SELECT_REQUEST_CODE = 101
     }
 }
 

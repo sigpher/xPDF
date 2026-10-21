@@ -48,6 +48,9 @@
     <string name="app_first_create_shortcut_tips">If the shortcut is not created successfully, please check whether the shortcut permission is turned on</string>
 
     <string name="app_import">Import</string>
+    <string name="app_import_folder">Import Folder</string>
+    <string name="app_legacy_missing_tips">%d book(s) were imported by an old version and can no longer be opened. Select the original folder to import them again. Existing records are kept.</string>
+    <string name="app_import_failed">No PDF file was imported</string>
     <string name="app_import_count">Import(%d)</string>
     <string name="app_selected_count">Selected(%d)</string>
     <string name="app_backup">Backup</string>

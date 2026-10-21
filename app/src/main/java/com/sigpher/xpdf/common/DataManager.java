@@ -6,6 +6,7 @@ import com.sigpher.xpdf.common.bean.Collection;
 import com.sigpher.xpdf.common.bean.Cover;
 import com.sigpher.xpdf.common.bean.PDF;
 import com.sigpher.xpdf.common.event.AllEvent;
+import com.sigpher.xpdf.common.event.LegacyMissingEvent;
 import com.sigpher.xpdf.common.event.RecentPDFEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -43,17 +44,20 @@ public final class DataManager {
      * 加载完成后通过 EventBus 通知书库刷新，页面此时尚未创建也不会丢数据。
      */
     public static void initAsync() {
-        ThreadUtils.executeByIo(new SimpleTask<Boolean>() {
+        ThreadUtils.executeByIo(new SimpleTask<Integer>() {
             @Override
-            public Boolean doInBackground() {
+            public Integer doInBackground() {
                 reloadAllFromDb();
-                return Boolean.TRUE;
+                return countUnreadablePdf();
             }
 
             @Override
-            public void onSuccess(Boolean result) {
+            public void onSuccess(Integer missing) {
                 EventBus.getDefault().post(new AllEvent());
                 EventBus.getDefault().post(new RecentPDFEvent());
+                if (missing > 0) {
+                    EventBus.getDefault().post(new LegacyMissingEvent(missing));
+                }
             }
         });
     }
@@ -73,6 +77,21 @@ public final class DataManager {
             rebuildDirIndex();
             updateCoverList();
         }
+    }
+
+    /**
+     * 统计旧版本遗留、在当前系统上已无法读取的条目数（分区存储上线后外部路径不再可访问）。
+     * 只在 IO 线程调用。
+     */
+    private static int countUnreadablePdf() {
+        int count = 0;
+        for (PDF pdf : pdfList) {
+            String path = pdf.getPath();
+            if (path == null || !new java.io.File(path).canRead()) {
+                count++;
+            }
+        }
+        return count;
     }
 
     public static void updateAll() {

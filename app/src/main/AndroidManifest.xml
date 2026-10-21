@@ -15,9 +15,6 @@
             android:name=".main.SearchActivity"
             android:exported="false" />
         <activity
-            android:name=".filepicker.ScanActivity"
-            android:exported="false" />
-        <activity
             android:name=".main.MainActivity"
             android:theme="@style/AppSplash"
             android:exported="true"
@@ -45,9 +42,6 @@
         <activity
             android:name=".about.AboutActivity"
             android:exported="false" />
-        <activity
-            android:name=".filepicker.SelectActivity"
-            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -62,8 +56,7 @@
         </provider>
     </application>
 
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- 导入通过系统文件选择器（SAF）完成，文件只保存到应用私有目录，因此不需要任何存储权限 -->
 
     <!-- 应用完全离线：屏蔽三方库（如 com.tencent.sonic）带入的网络权限 -->
     <uses-permission
