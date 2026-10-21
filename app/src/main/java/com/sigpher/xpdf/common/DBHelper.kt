@@ -103,9 +103,15 @@ object DBHelper {
     @JvmStatic
     fun queryRecentPDF(): List<PDF> {
         val list = sDaoSession.loadAll<RecentPDF, Any>(RecentPDF::class.java)
-        val recentPDFList: MutableList<PDF> = ArrayList()
+        if (list.isEmpty()) return ArrayList()
+        // 两次查询即可完成关联，避免逐条查询造成的 N+1
+        val pdfMap = HashMap<String, PDF>(list.size * 2)
+        for (pdf in sDaoSession.loadAll<PDF, Any>(PDF::class.java)) {
+            pdfMap["${pdf.dir}\u0000${pdf.name}"] = pdf
+        }
+        val recentPDFList: MutableList<PDF> = ArrayList(list.size)
         for (recent in list) {
-            recentPDFList.addAll(queryPDF(recent.dir, recent.name))
+            pdfMap["${recent.dir}\u0000${recent.name}"]?.let { recentPDFList.add(it) }
         }
         // 按最新阅读时间排序
         recentPDFList.sortWith(Comparator { p1: PDF, p2: PDF -> (p2.latestRead - p1.latestRead).toInt() })
@@ -139,13 +145,6 @@ object DBHelper {
         return if (StringUtils.isEmpty(dir)) {
             ArrayList()
         } else sDaoSession.queryRaw<PDF, Any>(PDF::class.java, "where DIR = ?", dir)
-    }
-
-    private fun queryPDF(dir: String, name: String): List<PDF> {
-        val qb = sDaoSession.queryBuilder(PDF::class.java)
-                .where(PDFDao.Properties.Dir.eq(dir), PDFDao.Properties.Name.eq(name))
-                .orderDesc(PDFDao.Properties.LatestRead)
-        return qb.list()
     }
 
     fun insertRecent(pdf: PDF) {
@@ -266,12 +265,23 @@ object DBHelper {
         val dir = pdf?.dir ?: groupName
         val name = pdf?.name ?: getName(filePath)
         val path = pdf?.path ?: filePath
-        val cover = PdfUtils.saveBitmap(PdfUtils.pdfToBitmap(pdf?.path
-                ?: filePath, 0), "${PathUtils.getInternalAppDataPath()}/$name.jpg")
+        // 一次打开完成"取页数 + 渲染封面"，避免同一文件被打开两次
+        val renderer = PdfUtils.openRenderer(path)
+        var pageCount = 0
+        val cover = try {
+            pageCount = renderer?.pageCount ?: 0
+            PdfUtils.saveBitmap(PdfUtils.renderPage(renderer, 0),
+                    "${PathUtils.getInternalAppDataPath()}/$name.jpg")
+        } finally {
+            try {
+                renderer?.close()
+            } catch (ignored: Exception) {
+            }
+        }
         val progress = pdf?.progress ?: "0.0%"
         val curPage = pdf?.curPage ?: 0
         val bookmarkPage = pdf?.bookmark ?: ""
-        val totalPage = pdf?.totalPage ?: PdfUtils.getPdfTotalPage(filePath)
+        val totalPage = pdf?.totalPage ?: pageCount
         val latestRead = pdf?.latestRead ?: 0
         val pos = pdf?.position ?: position
         val scaleFactor = pdf?.scaleFactor ?: 1.0f
