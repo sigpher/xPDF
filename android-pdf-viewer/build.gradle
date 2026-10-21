@@ -1,28 +1,35 @@
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android-extensions'
-apply plugin: 'kotlin-android'
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
 
 android {
-    compileSdkVersion 29
+    namespace 'com.github.barteksc.pdfviewer'
+    compileSdk 34
 
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 29
+        minSdk 21
+        targetSdk 34
         versionCode 1
         versionName "3.2.0-beta.1"
     }
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
 }
 
 dependencies {
     api 'com.github.barteksc:pdfium-android:1.9.0'
     // 基础库改用 sigpher/Base fork（原 com.aaron:base 依赖的 JCenter 已停服）
     implementation 'com.github.sigpher:Base:1.1.5-beta9'
-    // 固定版本：动态版本会拉到需要新 AGP/Jetifier 的 androidx 构件，导致 AGP 3.4.1 构建失败
-    implementation 'androidx.core:core-ktx:1.3.0'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'androidx.core:core-ktx:1.13.1'
 }
-
 repositories {
     mavenCentral()
 }

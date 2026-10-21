@@ -33,11 +33,10 @@ import com.blankj.utilcode.util.ToastUtils
 import com.chad.library.adapter.base.callback.ItemDragAndSwipeCallback
 import com.chad.library.adapter.base.listener.OnItemDragListener
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import kotlinx.android.synthetic.main.app_fragment_collection.*
-import kotlinx.android.synthetic.main.app_include_operation_bar.*
 import org.greenrobot.eventbus.EventBus
 import java.io.File
 import java.util.*
+import com.sigpher.xpdf.databinding.AppFragmentCollectionBinding
 
 /**
  * @author sigpher
@@ -121,8 +120,18 @@ class CollectionFragment2 : DialogFragment(), IOperation, GroupingAdapter.Callba
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.app_fragment_collection, container, false)
+    private var _binding: AppFragmentCollectionBinding? = null
+
+    private val binding get() = _binding!!
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = AppFragmentCollectionBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun localDeleteVisibility(): Int = View.VISIBLE
@@ -132,7 +141,7 @@ class CollectionFragment2 : DialogFragment(), IOperation, GroupingAdapter.Callba
         val args = arguments
         if (args != null) {
             name = args.getString(BUNDLE_NAME)
-            app_et_name.setText(name)
+            binding.appEtName.setText(name)
         }
         initView()
     }
@@ -152,7 +161,7 @@ class CollectionFragment2 : DialogFragment(), IOperation, GroupingAdapter.Callba
             view.requestFocus()
             view.setOnKeyListener(View.OnKeyListener { _, i, keyEvent ->
                 if (keyEvent.action == KeyEvent.ACTION_DOWN && i == KeyEvent.KEYCODE_BACK) {
-                    if (app_vg_operation.visibility == View.VISIBLE) {
+                    if (binding.appIncludeOperationBar.appVgOperation.visibility == View.VISIBLE) {
                         cancelSelect()
                         return@OnKeyListener true
                     }
@@ -174,19 +183,19 @@ class CollectionFragment2 : DialogFragment(), IOperation, GroupingAdapter.Callba
 
     private fun startPicking() {
         selectPDFList.clear()
-        app_et_name.isEnabled = false
+        binding.appEtName.isEnabled = false
         cancelRename()
-        app_ibtn_select_all.isSelected = false
-        OperationBarHelper.show(app_vg_operation)
-        app_tv_regrouping.visibility = View.VISIBLE
+        binding.appIncludeOperationBar.appIbtnSelectAll.isSelected = false
+        OperationBarHelper.show(binding.appIncludeOperationBar.appVgOperation)
+        binding.appTvRegrouping.visibility = View.VISIBLE
     }
 
     @SuppressLint("SetTextI18n")
     private fun select(selectAll: Boolean) {
-        app_ibtn_create_shortcut.isEnabled = selectPDFList.isNotEmpty()
-        app_ibtn_delete.isEnabled = selectPDFList.isNotEmpty()
-        app_ibtn_select_all.isSelected = selectAll
-        app_tv_operationbar_title.text = getString(R.string.app_selected_count, selectPDFList.size)
+        binding.appIncludeOperationBar.appIbtnCreateShortcut.isEnabled = selectPDFList.isNotEmpty()
+        binding.appIncludeOperationBar.appIbtnDelete.isEnabled = selectPDFList.isNotEmpty()
+        binding.appIncludeOperationBar.appIbtnSelectAll.isSelected = selectAll
+        binding.appIncludeOperationBar.appTvOperationbarTitle.text = getString(R.string.app_selected_count, selectPDFList.size)
     }
 
     override fun createShortcut() {
@@ -215,7 +224,7 @@ class CollectionFragment2 : DialogFragment(), IOperation, GroupingAdapter.Callba
     }
 
     override fun selectAll(selectAll: Boolean) {
-        app_ibtn_select_all.isSelected = selectAll
+        binding.appIncludeOperationBar.appIbtnSelectAll.isSelected = selectAll
         adapter.selectAll(selectAll)
         selectPDFList.clear()
         if (selectAll) {
@@ -225,10 +234,10 @@ class CollectionFragment2 : DialogFragment(), IOperation, GroupingAdapter.Callba
     }
 
     override fun cancelSelect() {
-        app_et_name.isEnabled = true
-        OperationBarHelper.hide(app_vg_operation)
+        binding.appEtName.isEnabled = true
+        OperationBarHelper.hide(binding.appIncludeOperationBar.appVgOperation)
         adapter.exitSelectMode()
-        app_tv_regrouping.visibility = View.GONE
+        binding.appTvRegrouping.visibility = View.GONE
         if (regroupingDialog.isShowing) {
             regroupingDialog.dismiss()
         }
@@ -303,15 +312,15 @@ class CollectionFragment2 : DialogFragment(), IOperation, GroupingAdapter.Callba
     private fun initView() {
         setListener()
         if (xItemDecoration != null) {
-            app_rv_collection.removeItemDecoration(xItemDecoration!!)
+            binding.appRvCollection.removeItemDecoration(xItemDecoration!!)
         }
         if (yItemDecoration != null) {
-            app_rv_collection.removeItemDecoration(yItemDecoration!!)
+            binding.appRvCollection.removeItemDecoration(yItemDecoration!!)
         }
         xItemDecoration = XGridDecoration()
         yItemDecoration = YGridDecoration()
-        app_rv_collection.addItemDecoration(xItemDecoration!!)
-        app_rv_collection.addItemDecoration(yItemDecoration!!)
+        binding.appRvCollection.addItemDecoration(xItemDecoration!!)
+        binding.appRvCollection.addItemDecoration(yItemDecoration!!)
         val lm = if (isHorizontalLayout) {
             LinearLayoutManager(activity)
         } else {
@@ -323,7 +332,7 @@ class CollectionFragment2 : DialogFragment(), IOperation, GroupingAdapter.Callba
                 }
             }
         }
-        app_rv_collection.layoutManager = lm
+        binding.appRvCollection.layoutManager = lm
         adapter = CollectionAdapter2(pdfList)
         adapter.setOnItemClickListener { _, view, position ->
             if (adapter.isSelectMode) {
@@ -376,21 +385,21 @@ class CollectionFragment2 : DialogFragment(), IOperation, GroupingAdapter.Callba
             }
         })
         val dragHelper = ItemTouchHelper(ItemDragAndSwipeCallback(adapter))
-        dragHelper.attachToRecyclerView(app_rv_collection)
+        dragHelper.attachToRecyclerView(binding.appRvCollection)
         adapter.enableDragItem(dragHelper)
-        app_rv_collection.adapter = adapter
+        binding.appRvCollection.adapter = adapter
     }
 
     override fun showExport(): Boolean = true
 
     @SuppressLint("SetTextI18n")
     private fun setListener() {
-        app_blur_view.setOnClickListener {
+        binding.appBlurView.setOnClickListener {
             when {
-                app_et_name.hasFocus() -> {
+                binding.appEtName.hasFocus() -> {
                     cancelRename()
                 }
-                app_vg_operation.visibility == View.VISIBLE -> {
+                binding.appIncludeOperationBar.appVgOperation.visibility == View.VISIBLE -> {
                     cancelSelect()
                 }
                 else -> {
@@ -398,11 +407,11 @@ class CollectionFragment2 : DialogFragment(), IOperation, GroupingAdapter.Callba
                 }
             }
         }
-        app_tv_regrouping.setOnClickListener {
+        binding.appTvRegrouping.setOnClickListener {
             regroupingDialog.show()
         }
-        app_ibtn_cancel.setOnClickListener { cancelSelect() }
-        app_ibtn_create_shortcut.apply {
+        binding.appIncludeOperationBar.appIbtnCancel.setOnClickListener { cancelSelect() }
+        binding.appIncludeOperationBar.appIbtnCreateShortcut.apply {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 visibility = View.VISIBLE
             }
@@ -434,35 +443,35 @@ class CollectionFragment2 : DialogFragment(), IOperation, GroupingAdapter.Callba
                 cancelSelect()
             }
         }
-        app_ibtn_delete.setOnClickListener {
+        binding.appIncludeOperationBar.appIbtnDelete.setOnClickListener {
             deleteDialog.show()
             tvDeleteDescription?.text = getString(R.string.app_whether_delete_all, selectPDFList.size)
             deleteLocal?.visibility = localDeleteVisibility()
         }
-        app_ibtn_select_all.setOnClickListener { selectAll(!it.isSelected) }
-        app_et_name.onFocusChangeListener = View.OnFocusChangeListener { _: View?, hasFocus: Boolean ->
-            app_ibtn_clear.visibility = if (hasFocus) View.VISIBLE else View.GONE
+        binding.appIncludeOperationBar.appIbtnSelectAll.setOnClickListener { selectAll(!it.isSelected) }
+        binding.appEtName.onFocusChangeListener = View.OnFocusChangeListener { _: View?, hasFocus: Boolean ->
+            binding.appIbtnClear.visibility = if (hasFocus) View.VISIBLE else View.GONE
         }
-        app_et_name.addTextChangedListener(object : TextWatcherImpl() {
+        binding.appEtName.addTextChangedListener(object : TextWatcherImpl() {
             override fun onTextChanged(c: CharSequence, i: Int, i1: Int, i2: Int) {
                 newDirName = c.toString().trim { it <= ' ' }
             }
         })
-        app_et_name.setOnKeyListener { _, _, _ ->
+        binding.appEtName.setOnKeyListener { _, _, _ ->
             cancelRename()
             true
         }
-        app_ibtn_clear.setOnClickListener {
-            app_et_name.setText(" ")
-            app_et_name.setSelection(0)
+        binding.appIbtnClear.setOnClickListener {
+            binding.appEtName.setText(" ")
+            binding.appEtName.setSelection(0)
         }
     }
 
     private fun cancelRename() {
-        KeyboardUtils.hideSoftInput(app_et_name)
-        app_et_name.clearFocus()
+        KeyboardUtils.hideSoftInput(binding.appEtName)
+        binding.appEtName.clearFocus()
         if (newDirName != null && StringUtils.isEmpty(newDirName)) {
-            app_et_name.setText(name)
+            binding.appEtName.setText(name)
             UiManager.showShort(R.string.app_not_support_empty_string)
         } else {
             val success = DBHelper.updateDirName(name ?: "", newDirName ?: "")

@@ -1,16 +1,18 @@
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
-apply plugin: 'org.greenrobot.greendao'
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
 
 android {
-    compileSdkVersion 29
+    namespace 'com.sigpher.xpdf'
+    compileSdk 34
 
     resourcePrefix 'app'
+
     defaultConfig {
         applicationId "com.sigpher.xpdf"
-        minSdkVersion 21
-        targetSdkVersion 28
+        minSdk 21
+        targetSdk 34
         versionCode 33
         versionName "3.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -22,32 +24,30 @@ android {
         }
     }
 
-    // 只构建 release 变体：debug 变体不再参与构建，assembleDebug 不会产出 APK
-    // 如需临时调试，注释掉下面这段即可
-    variantFilter { variant ->
-        if (variant.buildType.name == 'debug') {
-            variant.ignore = true
+    signingConfigs {
+        // local.properties 不存在或未配置签名时，退回 debug 签名，保证 clone 后可直接 sync
+        Properties properties = new Properties()
+        File localProps = project.rootProject.file('local.properties')
+        if (localProps.exists()) {
+            localProps.withInputStream { properties.load(it) }
+        }
+        release {
+            if (properties.getProperty("STORE_FILE_NAME") != null) {
+                storeFile file(properties.getProperty("STORE_FILE_NAME"))
+                storePassword properties.getProperty("KEYSTORE_PASSWORD")
+                keyAlias properties.getProperty("STORE_ALIAS")
+                keyPassword properties.getProperty("KEY_PASSWORD")
+            }
         }
     }
 
-    signingConfigs {
-        Properties properties = new Properties()
-        InputStream inputStream = project.rootProject.file('local.properties').newDataInputStream()
-        properties.load(inputStream)
-        release {
-            storeFile file(properties.getProperty("STORE_FILE_NAME"))
-            storePassword properties.getProperty("KEYSTORE_PASSWORD")
-            keyAlias properties.getProperty("STORE_ALIAS")
-            keyPassword properties.getProperty("KEY_PASSWORD")
-        }
+    buildFeatures {
+        viewBinding true
+        buildConfig true
     }
 
     buildTypes {
         release {
-            lintOptions {
-                checkReleaseBuilds false
-                abortOnError false
-            }
             manifestPlaceholders = [
                     app_icon : '@drawable/app_ic_xpdf',
                     app_name : '@string/app_name_en'
@@ -55,7 +55,9 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
+            if (signingConfigs.release.storeFile != null) {
+                signingConfig signingConfigs.release
+            }
         }
 
         debug {
@@ -66,51 +68,55 @@ android {
             ]
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
         }
     }
 
     compileOptions {
-        sourceCompatibility = 1.8
-        targetCompatibility = 1.8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/LICENSE.txt',
+                         'META-INF/NOTICE', 'META-INF/NOTICE.txt', 'META-INF/AL2.0', 'META-INF/LGPL2.1']
+        }
     }
 }
 
-greendao {
-    schemaVersion 3 // 数据库版本号
-    daoPackage 'com.sigpher.xpdf.common.greendao' // 设置 DaoMaster、DaoSession、Dao包名
-    targetGenDir 'src/main/java' // 设置DaoMaster、DaoSession、Dao目录
-    // targetGenDirTest：设置生成单元测试目录
-    // generateTests：设置自动生成单元测试用例
-}
-
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'com.google.android.material:material:1.3.0-alpha01'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.multidex:multidex:2.0.1'
     // 仅需要 ViewPager（原 legacy-support-v4 已无用）
     implementation 'androidx.viewpager:viewpager:1.0.0'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test:runner:1.2.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test:runner:1.5.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 
     implementation project(':android-pdf-viewer')
     // 基础库：原 com.aaron:base 已停止维护（JCenter 已停服），改用 sigpher/Base fork，经 JitPack 发布
     implementation 'com.github.sigpher:Base:1.1.5-beta9'
-    implementation 'org.greenrobot:greendao:3.2.2'
+    implementation 'org.greenrobot:greendao:3.3.0'
     implementation 'com.github.anzewei:parallaxbacklayout:1.1.9'
     implementation 'com.github.mmin18:realtimeblurview:1.2.1'
-    implementation 'org.greenrobot:eventbus:3.1.1'
+    implementation 'org.greenrobot:eventbus:3.3.1'
     implementation 'com.github.bmelnychuk:atv:1.2.9'
-    debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.3'
-    releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.3'
-    implementation "androidx.core:core-ktx:1.3.0"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.2'
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'
+    implementation "androidx.core:core-ktx:1.13.1"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1"
 
     implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.46'
-//    implementation 'io.github.yuweiguocn:GreenDaoUpgradeHelper:v2.2.1'
 }
 repositories {
     mavenCentral()

@@ -5,9 +5,9 @@ import android.widget.CheckBox
 import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.RecyclerView
 import com.sigpher.xpdf.R
+import com.sigpher.xpdf.databinding.AppRecyclerItemEmptyviewBinding
 import com.chad.library.adapter.base.BaseItemDraggableAdapter
 import com.chad.library.adapter.base.BaseViewHolder
-import kotlinx.android.synthetic.main.app_recycler_item_emptyview.view.*
 import kotlin.collections.MutableList
 import kotlin.collections.MutableMap
 import kotlin.collections.mutableMapOf
@@ -40,8 +40,9 @@ abstract class BaseAdapter<T, K : BaseViewHolder>(
         if (holder is BaseHolder) {
             handleCheckBox(holder, holder.checkBox, position)
         } else {
-            emptyView.app_itv_placeholder.text = emptyText
-            emptyView.app_itv_placeholder.setIconTop(emptyIcon)
+            val emptyBinding = AppRecyclerItemEmptyviewBinding.bind(emptyView)
+            emptyBinding.appItvPlaceholder.text = emptyText
+            emptyBinding.appItvPlaceholder.setIconTop(emptyIcon)
         }
     }
 

@@ -12,9 +12,8 @@ import com.sigpher.xpdf.preview.ContentHolder.IconTreeItem
 import com.shockwave.pdfium.PdfDocument
 import com.unnamed.b.atv.model.TreeNode
 import com.unnamed.b.atv.view.AndroidTreeView
-import kotlinx.android.synthetic.main.app_fragment_content.*
-import kotlinx.android.synthetic.main.app_recycler_item_emptyview.*
 import java.util.*
+import com.sigpher.xpdf.databinding.AppFragmentContentBinding
 
 /**
  * @author sigpher
@@ -29,21 +28,31 @@ class ContentFragment : CommonFragment(), IContentFragInterface {
         initContent()
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.app_fragment_content, container, false)
+    private var _binding: AppFragmentContentBinding? = null
+
+    private val binding get() = _binding!!
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = AppFragmentContentBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        app_itv_placeholder.setText(R.string.app_have_no_content)
-        app_itv_placeholder.setTextColor(App.getContext().resources.getColor(R.color.app_content_bookmark_primary))
-        app_itv_placeholder.setIconTop(R.drawable.app_ic_action_content_white)
-        app_itv_placeholder.alpha = 0.6f
+        binding.appRecyclerItemEmptyview.appItvPlaceholder.setText(R.string.app_have_no_content)
+        binding.appRecyclerItemEmptyview.appItvPlaceholder.setTextColor(App.getContext().resources.getColor(R.color.app_content_bookmark_primary))
+        binding.appRecyclerItemEmptyview.appItvPlaceholder.setIconTop(R.drawable.app_ic_action_content_white)
+        binding.appRecyclerItemEmptyview.appItvPlaceholder.alpha = 0.6f
     }
 
     private fun initContent() {
         if (contentList.isNotEmpty()) {
-            app_itv_placeholder.visibility = View.GONE
+            binding.appRecyclerItemEmptyview.appItvPlaceholder.visibility = View.GONE
             for (bk in contentList) {
                 val icon = if (bk.hasChildren()) R.drawable.app_ic_can_down_white else R.drawable.app_ic_cannot_down_white
                 val title = bk.title
@@ -78,10 +87,10 @@ class ContentFragment : CommonFragment(), IContentFragInterface {
                 //设置树形视图默认的ViewHolder
                 treeView.setDefaultViewHolder(ContentHolder::class.java)
                 //将树形视图添加到layout中
-                app_ll.addView(treeView.view)
+                binding.appLl.addView(treeView.view)
             }
         } else {
-            app_itv_placeholder.visibility = View.VISIBLE
+            binding.appRecyclerItemEmptyview.appItvPlaceholder.visibility = View.VISIBLE
         }
     }
 

@@ -11,12 +11,12 @@ import android.widget.Filter
 import android.widget.Filterable
 import androidx.recyclerview.widget.RecyclerView
 import com.sigpher.xpdf.R
+import com.sigpher.xpdf.databinding.AppRecyclerItemFilepickerBinding
 import com.sigpher.xpdf.common.EmptyHolder
 import com.sigpher.xpdf.common.HeaderHolder
 import com.blankj.utilcode.util.ConvertUtils
 import com.blankj.utilcode.util.StringUtils
 import com.blankj.utilcode.util.TimeUtils
-import kotlinx.android.synthetic.main.app_recycler_item_filepicker.view.*
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -85,9 +85,9 @@ class ViewAllAdapter(
             holder.itemView.visibility = View.GONE
             return holder
         }
-        val itemView = inflater.inflate(R.layout.app_recycler_item_filepicker, parent, false)
-        val holder = ViewHolder(itemView)
-        holder.itemView.app_cb.apply {
+        val binding = AppRecyclerItemFilepickerBinding.inflate(inflater, parent, false)
+        val holder = ViewHolder(binding)
+        holder.binding.appCb.apply {
             val language = Locale.getDefault().language
             val resources = context.resources
             val sel = resources.getDrawable(R.drawable.app_sel_select_single) as StateListDrawable
@@ -108,15 +108,15 @@ class ViewAllAdapter(
             if (file.isDirectory) {
                 callback.onDirTap(file.absolutePath)
             } else {
-                if (holder.itemView.app_cb.isEnabled && importedList?.contains(file.absolutePath) == false) {
-                    holder.itemView.app_cb.isChecked = !holder.itemView.app_cb.isChecked
-                    if (holder.itemView.app_cb.isChecked && !selectList.contains(file.absolutePath)) {
+                if (holder.binding.appCb.isEnabled && importedList?.contains(file.absolutePath) == false) {
+                    holder.binding.appCb.isChecked = !holder.binding.appCb.isChecked
+                    if (holder.binding.appCb.isChecked && !selectList.contains(file.absolutePath)) {
                         selectList.add(file.absolutePath)
                     } else {
                         selectList.remove(file.absolutePath)
                     }
                 }
-                checkArray.put(pos, holder.itemView.app_cb.isChecked)
+                checkArray.put(pos, holder.binding.appCb.isChecked)
                 callback.onSelectResult(selectList, fileCount())
             }
         }
@@ -141,34 +141,34 @@ class ViewAllAdapter(
             var desc = context?.getString(R.string.app_item, 0)
             val lastModified = TimeUtils.millis2String(file.lastModified(), SimpleDateFormat("yyyy/MM/dd HH:mm"))
             if (file.isDirectory) {
-                holder.itemView.app_iv_icon.setImageResource(R.drawable.app_ic_folder_yellow_24dp)
-                holder.itemView.app_iv_next.visibility = View.VISIBLE
-                holder.itemView.app_cb.visibility = View.GONE
+                holder.binding.appIvIcon.setImageResource(R.drawable.app_ic_folder_yellow_24dp)
+                holder.binding.appIvNext.visibility = View.VISIBLE
+                holder.binding.appCb.visibility = View.GONE
                 val files = file.listFiles(FileFilterImpl())
                 if (files != null) desc = context?.getString(R.string.app_item, files.size)
             } else { // 大小 MB 留小数点后一位
                 var size = (file.length().toDouble() / 1024 / 1024).toString()
                 size = size.substring(0, size.indexOf(".") + 2)
                 desc = "$size MB  -  "
-                holder.itemView.app_iv_next.visibility = View.GONE
-                holder.itemView.app_cb.visibility = View.VISIBLE
-                holder.itemView.app_cb.setPadding(0, 0, 0, 0)
+                holder.binding.appIvNext.visibility = View.GONE
+                holder.binding.appCb.visibility = View.VISIBLE
+                holder.binding.appCb.setPadding(0, 0, 0, 0)
                 if (file.name.endsWith(".pdf") || file.name.endsWith(".PDF")) {
-                    holder.itemView.app_iv_icon.setImageResource(R.drawable.app_ic_pdf)
+                    holder.binding.appIvIcon.setImageResource(R.drawable.app_ic_pdf)
                 }
                 //判断是否已导入
                 if (importedList?.isNotEmpty() == true && importedList.contains(file.absolutePath)) {
-                    holder.itemView.app_cb.isEnabled = false
-                    holder.itemView.app_cb.setPadding(0, 0, ConvertUtils.dp2px(2f), 0)
+                    holder.binding.appCb.isEnabled = false
+                    holder.binding.appCb.setPadding(0, 0, ConvertUtils.dp2px(2f), 0)
                 } else {
-                    holder.itemView.app_cb.isEnabled = true
+                    holder.binding.appCb.isEnabled = true
                 }
-                holder.itemView.app_cb.isChecked = checkArray[position]
-                holder.itemView.app_tv_title.text = name
-                holder.itemView.app_tv_description.text = desc + lastModified
+                holder.binding.appCb.isChecked = checkArray[position]
+                holder.binding.appTvTitle.text = name
+                holder.binding.appTvDescription.text = desc + lastModified
             }
-            holder.itemView.app_tv_title.text = name
-            holder.itemView.app_tv_description.text = desc + lastModified
+            holder.binding.appTvTitle.text = name
+            holder.binding.appTvDescription.text = desc + lastModified
         }
     }
 
@@ -177,8 +177,8 @@ class ViewAllAdapter(
             super.onBindViewHolder(viewHolder, position, payloads)
         } else {
             if (viewHolder is ViewHolder) {
-                if (viewHolder.itemView.app_cb.visibility == View.VISIBLE) {
-                    viewHolder.itemView.app_cb.isChecked = checkArray[position]
+                if (viewHolder.binding.appCb.visibility == View.VISIBLE) {
+                    viewHolder.binding.appCb.isChecked = checkArray[position]
                 }
             }
         }
@@ -246,7 +246,7 @@ class ViewAllAdapter(
         return count
     }
 
-    private class ViewHolder internal constructor(itemView: View) : RecyclerView.ViewHolder(itemView)
+    private class ViewHolder internal constructor(val binding: AppRecyclerItemFilepickerBinding) : RecyclerView.ViewHolder(binding.root)
 
     interface Callback {
         fun onDirTap(dirPath: String)

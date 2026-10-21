@@ -9,13 +9,12 @@ import android.widget.AdapterView.OnItemSelectedListener
 import android.widget.Switch
 import androidx.recyclerview.widget.RecyclerView
 import com.sigpher.xpdf.R
+import com.sigpher.xpdf.databinding.AppRecyclerItemSettingsSwitchBinding
+import com.sigpher.xpdf.databinding.AppRecyclerItemSettingsRecentCountBinding
 import com.sigpher.xpdf.common.App
 import com.sigpher.xpdf.common.Settings
 import com.sigpher.xpdf.common.event.MaxRecentEvent
 import com.blankj.utilcode.util.ConvertUtils
-import kotlinx.android.synthetic.main.app_recycler_item_settings_recent_count.view.*
-import kotlinx.android.synthetic.main.app_recycler_item_settings_switch.view.*
-import kotlinx.android.synthetic.main.app_recycler_item_settings_switch.view.app_tv_title
 import org.greenrobot.eventbus.EventBus
 
 /**
@@ -30,14 +29,14 @@ internal class SettingsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>()
         val context = parent.context
         val inflater = LayoutInflater.from(context)
         if (viewType == TYPE_NUM_PICKER) {
-            val itemView = inflater.inflate(R.layout.app_recycler_item_settings_recent_count, parent, false)
-            val holder = MaxRecentHolder(itemView)
-            holder.itemView.setOnClickListener { holder.itemView.app_spinner.performClick() }
-            holder.itemView.app_spinner.dropDownHorizontalOffset = -ConvertUtils.dp2px(46f)
-            holder.itemView.app_spinner.onItemSelectedListener = object : OnItemSelectedListener {
+            val binding = AppRecyclerItemSettingsRecentCountBinding.inflate(inflater, parent, false)
+            val holder = MaxRecentHolder(binding)
+            holder.itemView.setOnClickListener { holder.binding.appSpinner.performClick() }
+            holder.binding.appSpinner.dropDownHorizontalOffset = -ConvertUtils.dp2px(46f)
+            holder.binding.appSpinner.onItemSelectedListener = object : OnItemSelectedListener {
                 override fun onItemSelected(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
                     val maxRecentCount = maxRecentCounts[position]
-                    holder.itemView.app_tv_count.text = maxRecentCount
+                    holder.binding.appTvCount.text = maxRecentCount
                     Settings.maxRecentCount = maxRecentCount
                     EventBus.getDefault().post(maxRecentEvent)
                 }
@@ -46,12 +45,12 @@ internal class SettingsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>()
             }
             return holder
         }
-        val itemView = inflater.inflate(R.layout.app_recycler_item_settings_switch, parent, false)
-        val holder = SwitchHolder(itemView)
+        val binding = AppRecyclerItemSettingsSwitchBinding.inflate(inflater, parent, false)
+        val holder = SwitchHolder(binding)
         holder.itemView.setOnClickListener {
             val pos = holder.adapterPosition
-            holder.itemView.app_switch.isChecked = !holder.itemView.app_switch.isChecked
-            tapOptions(holder.itemView.app_switch, pos)
+            holder.binding.appSwitch.isChecked = !holder.binding.appSwitch.isChecked
+            tapOptions(holder.binding.appSwitch, pos)
         }
         return holder
     }
@@ -72,35 +71,35 @@ internal class SettingsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>()
             is SwitchHolder -> {
                 when (position) {
                     POS_VOLUME_CONTROL -> {
-                        viewHolder.itemView.app_tv_title.setText(R.string.app_volume_control)
-                        viewHolder.itemView.app_switch.isChecked = Settings.volumeControl
+                        viewHolder.binding.appTvTitle.setText(R.string.app_volume_control)
+                        viewHolder.binding.appSwitch.isChecked = Settings.volumeControl
                     }
                     POS_CLICK_FLIP_PAGE -> {
-                        viewHolder.itemView.app_tv_title.setText(R.string.app_click_flip_page)
-                        viewHolder.itemView.app_switch.isChecked = Settings.clickFlipPage
+                        viewHolder.binding.appTvTitle.setText(R.string.app_click_flip_page)
+                        viewHolder.binding.appSwitch.isChecked = Settings.clickFlipPage
                     }
                     POS_SHOW_STATUS_BAR -> {
-                        viewHolder.itemView.app_tv_title.setText(R.string.app_show_status_bar)
-                        viewHolder.itemView.app_switch.isChecked = Settings.showStatusBar
+                        viewHolder.binding.appTvTitle.setText(R.string.app_show_status_bar)
+                        viewHolder.binding.appSwitch.isChecked = Settings.showStatusBar
                     }
                     POS_KEEP_SCREEN_ON -> {
-                        viewHolder.itemView.app_tv_title.setText(R.string.app_keep_screen_on)
-                        viewHolder.itemView.app_switch.isChecked = Settings.keepScreenOn
+                        viewHolder.binding.appTvTitle.setText(R.string.app_keep_screen_on)
+                        viewHolder.binding.appSwitch.isChecked = Settings.keepScreenOn
                     }
                     POS_LINEAR_LAYOUT -> {
-                        viewHolder.itemView.app_tv_title.setText(R.string.app_linear_layout)
-                        viewHolder.itemView.app_switch.isChecked = Settings.linearLayout
+                        viewHolder.binding.appTvTitle.setText(R.string.app_linear_layout)
+                        viewHolder.binding.appSwitch.isChecked = Settings.linearLayout
                     }
                     POS_SCROLL_SHORTCUT -> {
-                        viewHolder.itemView.app_tv_title.setText(R.string.app_scroll_shortcut)
-                        viewHolder.itemView.app_switch.isChecked = Settings.scrollShortCut
+                        viewHolder.binding.appTvTitle.setText(R.string.app_scroll_shortcut)
+                        viewHolder.binding.appSwitch.isChecked = Settings.scrollShortCut
                     }
                 }
             }
             is MaxRecentHolder -> {
-                viewHolder.itemView.app_tv_title.setText(R.string.app_max_recent_count)
-                viewHolder.itemView.app_tv_count.text = Settings.maxRecentCount
-                viewHolder.itemView.app_spinner.setSelection(maxRecentCounts.indexOf(Settings.maxRecentCount))
+                viewHolder.binding.appTvTitle.setText(R.string.app_max_recent_count)
+                viewHolder.binding.appTvCount.text = Settings.maxRecentCount
+                viewHolder.binding.appSpinner.setSelection(maxRecentCounts.indexOf(Settings.maxRecentCount))
             }
         }
     }
@@ -113,19 +112,19 @@ internal class SettingsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>()
         return ITEM_COUNT
     }
 
-    internal class SwitchHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    internal class SwitchHolder(val binding: AppRecyclerItemSettingsSwitchBinding) : RecyclerView.ViewHolder(binding.root) {
         init {
-            val mlp = itemView.layoutParams as MarginLayoutParams
+            val mlp = binding.root.layoutParams as MarginLayoutParams
             mlp.bottomMargin = ConvertUtils.dp2px(0.6f)
-            itemView.layoutParams = mlp
+            binding.root.layoutParams = mlp
         }
     }
 
-    internal class MaxRecentHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    internal class MaxRecentHolder(val binding: AppRecyclerItemSettingsRecentCountBinding) : RecyclerView.ViewHolder(binding.root) {
         init {
-            val mlp = itemView.layoutParams as MarginLayoutParams
+            val mlp = binding.root.layoutParams as MarginLayoutParams
             mlp.topMargin = ConvertUtils.dp2px(12f)
-            itemView.layoutParams = mlp
+            binding.root.layoutParams = mlp
         }
     }
 

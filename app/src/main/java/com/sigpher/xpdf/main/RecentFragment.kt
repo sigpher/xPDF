@@ -17,11 +17,11 @@ import com.sigpher.xpdf.main.AbstractAdapter.IPickCallback
 import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.ThreadUtils
 import com.blankj.utilcode.util.ThreadUtils.SimpleTask
-import kotlinx.android.synthetic.main.app_fragment_recent.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import java.util.*
+import com.sigpher.xpdf.databinding.AppFragmentRecentBinding
 
 /**
  * @author sigpher
@@ -36,9 +36,14 @@ class RecentFragment : CommonFragment(), IOperation, IPickCallback<PDF> {
     private var xItemDecoration: RecyclerView.ItemDecoration? = null
     private var yItemDecoration: RecyclerView.ItemDecoration? = null
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    private var _binding: AppFragmentRecentBinding? = null
+
+    private val binding get() = _binding!!
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = AppFragmentRecentBinding.inflate(inflater, container, false)
         EventBus.getDefault().register(this)
-        return inflater.inflate(R.layout.app_fragment_recent, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -63,6 +68,7 @@ class RecentFragment : CommonFragment(), IOperation, IPickCallback<PDF> {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        _binding = null
         EventBus.getDefault().unregister(this)
     }
 
@@ -124,7 +130,7 @@ class RecentFragment : CommonFragment(), IOperation, IPickCallback<PDF> {
         if (event.isFromPreviewActivity) { // 由 PreviewActivity 发出而接收
             adapter?.notifyDataSetChanged()
         } else { // 由于还在 MainActivity 界面，所以不立即更新界面
-            app_rv_recent.postDelayed({ adapter?.notifyDataSetChanged() }, 500)
+            binding.appRvRecent.postDelayed({ adapter?.notifyDataSetChanged() }, 500)
         }
     }
 
@@ -182,15 +188,15 @@ class RecentFragment : CommonFragment(), IOperation, IPickCallback<PDF> {
 
     private fun initView() {
         if (xItemDecoration != null) {
-            app_rv_recent.removeItemDecoration(xItemDecoration!!)
+            binding.appRvRecent.removeItemDecoration(xItemDecoration!!)
         }
         if (yItemDecoration != null) {
-            app_rv_recent.removeItemDecoration(yItemDecoration!!)
+            binding.appRvRecent.removeItemDecoration(yItemDecoration!!)
         }
         xItemDecoration = XGridDecoration()
         yItemDecoration = YGridDecoration()
-        app_rv_recent.addItemDecoration(xItemDecoration!!)
-        app_rv_recent.addItemDecoration(yItemDecoration!!)
+        binding.appRvRecent.addItemDecoration(xItemDecoration!!)
+        binding.appRvRecent.addItemDecoration(yItemDecoration!!)
         val lm = GridLayoutManager(activity, 3).apply {
             spanSizeLookup = object : SpanSizeLookup() {
                 override fun getSpanSize(position: Int): Int {
@@ -198,9 +204,9 @@ class RecentFragment : CommonFragment(), IOperation, IPickCallback<PDF> {
                 }
             }
         }
-        app_rv_recent.layoutManager = lm
+        binding.appRvRecent.layoutManager = lm
         adapter = RecentAdapter(this, recentPDFList)
-        app_rv_recent.adapter = adapter
+        binding.appRvRecent.adapter = adapter
     }
 
     private fun initData() {

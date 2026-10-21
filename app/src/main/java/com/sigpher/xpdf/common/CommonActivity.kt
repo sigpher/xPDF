@@ -1,6 +1,7 @@
 package com.sigpher.xpdf.common
 
 import android.os.Bundle
+import android.view.View
 import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -27,9 +28,15 @@ abstract class CommonActivity : AppCompatActivity(), CoroutineScope {
 
     protected abstract fun createToolbar(): Toolbar?
 
+    /**
+     * ViewBinding 内容视图。返回非空时优先于 [layoutId]，便于逐步迁移到 ViewBinding。
+     */
+    protected open fun bindContentView(): View? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(layoutId())
+        val bindingRoot = bindContentView()
+        if (bindingRoot != null) setContentView(bindingRoot) else setContentView(layoutId())
         toolbar = createToolbar()
         toolbar?.run {
             setSupportActionBar(this)

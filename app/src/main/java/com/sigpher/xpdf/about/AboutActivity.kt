@@ -12,12 +12,16 @@ import com.sigpher.xpdf.BuildConfig
 import com.sigpher.xpdf.R
 import com.sigpher.xpdf.common.CommonActivity
 import com.github.anzewei.parallaxbacklayout.ParallaxBack
-import kotlinx.android.synthetic.main.app_activity_about.*
+import com.sigpher.xpdf.databinding.AppActivityAboutBinding
 
 @ParallaxBack
 class AboutActivity : CommonActivity(), IAboutView {
 
     private lateinit var mPresenter: IAboutPresenter
+
+    private val binding by lazy { AppActivityAboutBinding.inflate(layoutInflater) }
+
+    override fun bindContentView() = binding.root
 
     override fun layoutId(): Int {
         return R.layout.app_activity_about
@@ -74,9 +78,9 @@ class AboutActivity : CommonActivity(), IAboutView {
 
     private fun <T> initLibrary(libraryList: List<T>) {
         val libraryManager = LinearLayoutManager(this)
-        app_rv_library.layoutManager = libraryManager
+        binding.appRvLibrary.layoutManager = libraryManager
         val libraryAdapter: LibraryAdapter<*> = LibraryAdapter(this, libraryList)
-        app_rv_library.adapter = libraryAdapter
+        binding.appRvLibrary.adapter = libraryAdapter
     }
 
     companion object {

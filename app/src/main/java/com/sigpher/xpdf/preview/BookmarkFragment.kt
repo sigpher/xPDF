@@ -13,8 +13,8 @@ import com.sigpher.base.base.BaseFragment
 import com.sigpher.xpdf.R
 import com.sigpher.xpdf.common.CommonFragment
 import com.blankj.utilcode.util.LogUtils
-import kotlinx.android.synthetic.main.app_fragment_bookmark.*
 import java.util.*
+import com.sigpher.xpdf.databinding.AppFragmentBookmarkBinding
 
 /**
  * @author sigpher
@@ -31,8 +31,18 @@ class BookmarkFragment : CommonFragment(), IBkFragInterface {
         mAdapter?.notifyDataSetChanged()
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.app_fragment_bookmark, container, false)
+    private var _binding: AppFragmentBookmarkBinding? = null
+
+    private val binding get() = _binding!!
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = AppFragmentBookmarkBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -42,12 +52,12 @@ class BookmarkFragment : CommonFragment(), IBkFragInterface {
 
     private fun initView() {
         val lm = LinearLayoutManager(activity)
-        app_rv_bookmark.layoutManager = lm
+        binding.appRvBookmark.layoutManager = lm
         val decoration = DividerItemDecoration(activity, DividerItemDecoration.VERTICAL)
         decoration.setDrawable(ColorDrawable(resources.getColor(R.color.base_black_divider)))
-        app_rv_bookmark.addItemDecoration(decoration)
+        binding.appRvBookmark.addItemDecoration(decoration)
         mAdapter = BookmarkAdapter(mBookmarks)
-        app_rv_bookmark.adapter = mAdapter
+        binding.appRvBookmark.adapter = mAdapter
     }
 
     companion object {

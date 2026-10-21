@@ -36,13 +36,12 @@ import io.reactivex.ObservableEmitter
 import io.reactivex.ObservableOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.app_activity_scan.*
-import kotlinx.android.synthetic.main.app_include_searchview.*
 import java.io.File
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.sqrt
+import com.sigpher.xpdf.databinding.AppActivityScanBinding
 
 @ParallaxBack
 class ScanActivity : CommonActivity() {
@@ -126,11 +125,11 @@ class ScanActivity : CommonActivity() {
         override fun onChanged() {
             if (!isFinishing) {
                 selectList.clear()
-                app_ibtn_select_all.isSelected = false
-                app_btn_import_count.setText(getString(R.string.app_import_count, 0))
+                binding.appIbtnSelectAll.isSelected = false
+                binding.appBtnImportCount.setText(getString(R.string.app_import_count, 0))
                 if (stopScan) {
                     val enableSelectAll = adapter!!.reset()
-                    app_ibtn_select_all.isEnabled = enableSelectAll
+                    binding.appIbtnSelectAll.isEnabled = enableSelectAll
                 }
             }
         }
@@ -143,6 +142,10 @@ class ScanActivity : CommonActivity() {
         StatusBarUtils.setStatusBarLight(this, true)
         initView()
     }
+
+    private val binding by lazy { AppActivityScanBinding.inflate(layoutInflater) }
+
+    override fun bindContentView() = binding.root
 
     override fun layoutId(): Int {
         return R.layout.app_activity_scan
@@ -165,7 +168,7 @@ class ScanActivity : CommonActivity() {
     }
 
     override fun onBackPressed() {
-        if (app_search_view.visibility == View.VISIBLE) {
+        if (binding.appSearchView.root.visibility == View.VISIBLE) {
             closeSearchView()
         } else {
             super.onBackPressed()
@@ -176,41 +179,41 @@ class ScanActivity : CommonActivity() {
     private fun initView() {
         val imported: List<String>? = intent.getStringArrayListExtra(EXTRA_IMPORTED)
         threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())
-        app_search_view.post {
-            centerX = app_ibtn_search.left + app_ibtn_search.measuredWidth / 2
-            centerY = app_ibtn_search.top + app_ibtn_search.measuredHeight / 2
+        binding.appSearchView.root.post {
+            centerX = binding.appIbtnSearch.left + binding.appIbtnSearch.measuredWidth / 2
+            centerY = binding.appIbtnSearch.top + binding.appIbtnSearch.measuredHeight / 2
             val width = centerX * 2
-            val height = app_search_view.measuredHeight
+            val height = binding.appSearchView.root.measuredHeight
             radius = (sqrt(width * width + height * height.toDouble()) / 2).toFloat()
         }
-        app_ibtn_back.setOnClickListener { closeSearchView() }
-        app_ibtn_search.setOnClickListener { openSearchView() }
-        app_ibtn_inverse.setOnClickListener {
+        binding.appSearchView.appIbtnBack.setOnClickListener { closeSearchView() }
+        binding.appIbtnSearch.setOnClickListener { openSearchView() }
+        binding.appSearchView.appIbtnInverse.setOnClickListener {
             if (KeyboardUtils.isSoftInputVisible(this)) {
                 KeyboardUtils.hideSoftInput(this)
             }
-            app_ibtn_inverse.isSelected = !app_ibtn_inverse.isSelected
-            adapter?.setInverse(app_ibtn_inverse.isSelected)
-            adapter?.filter?.filter(app_et_search.text)
+            binding.appSearchView.appIbtnInverse.isSelected = !binding.appSearchView.appIbtnInverse.isSelected
+            adapter?.setInverse(binding.appSearchView.appIbtnInverse.isSelected)
+            adapter?.filter?.filter(binding.appSearchView.appEtSearch.text)
         }
-        app_ibtn_clear.setOnClickListener {
-            app_et_search.setText("")
+        binding.appSearchView.appIbtnClear.setOnClickListener {
+            binding.appSearchView.appEtSearch.setText("")
             if (!KeyboardUtils.isSoftInputVisible(this)) {
                 KeyboardUtils.showSoftInput(this)
             }
         }
-        app_et_search.addTextChangedListener(object : TextWatcherImpl() {
+        binding.appSearchView.appEtSearch.addTextChangedListener(object : TextWatcherImpl() {
             override fun onTextChanged(c: CharSequence, i: Int, i1: Int, i2: Int) {
-                app_ibtn_inverse.visibility = if (c.isEmpty()) View.GONE else View.VISIBLE
-                app_ibtn_clear.visibility = if (c.isEmpty()) View.GONE else View.VISIBLE
+                binding.appSearchView.appIbtnInverse.visibility = if (c.isEmpty()) View.GONE else View.VISIBLE
+                binding.appSearchView.appIbtnClear.visibility = if (c.isEmpty()) View.GONE else View.VISIBLE
                 adapter?.filter?.filter(c)
             }
         })
-        app_ibtn_select_all.setOnClickListener {
+        binding.appIbtnSelectAll.setOnClickListener {
             it.isSelected = !it.isSelected
             adapter?.selectAll(it.isSelected)
         }
-        app_btn_import_count.setOnClickListener(object : OnClickListenerImpl() {
+        binding.appBtnImportCount.setOnClickListener(object : OnClickListenerImpl() {
             override fun onViewClick(v: View, interval: Long) {
                 if (KeyboardUtils.isSoftInputVisible(this@ScanActivity)) {
                     KeyboardUtils.hideSoftInput(this@ScanActivity)
@@ -222,9 +225,9 @@ class ScanActivity : CommonActivity() {
                 }
             }
         })
-        app_ibtn_select_all.isEnabled = false // XML 设置无效，只能这里初始化
+        binding.appIbtnSelectAll.isEnabled = false // XML 设置无效，只能这里初始化
         val lm: RecyclerView.LayoutManager = LinearLayoutManager(this)
-        app_rv_select.layoutManager = lm
+        binding.appRvSelect.layoutManager = lm
         adapter = ViewAllAdapter(fileList, imported, object : ViewAllAdapter.Callback {
             override fun onDirTap(dirPath: String) { // empty impl
             }
@@ -233,15 +236,15 @@ class ScanActivity : CommonActivity() {
             override fun onSelectResult(pathList: List<String>, total: Int) {
                 LogUtils.e(pathList.size)
                 if (total != 0) {
-                    app_ibtn_select_all.isSelected = pathList.size == total
+                    binding.appIbtnSelectAll.isSelected = pathList.size == total
                 }
-                app_btn_import_count.text = getString(R.string.app_import_count, pathList.size)
+                binding.appBtnImportCount.text = getString(R.string.app_import_count, pathList.size)
                 selectList.clear()
                 selectList.addAll(pathList)
             }
         })
         adapter?.registerAdapterDataObserver(dataObserver)
-        app_rv_select.adapter = adapter
+        binding.appRvSelect.adapter = adapter
         scanDialog.show()
         Observable.create(ObservableOnSubscribe { emitter: ObservableEmitter<Double?> -> emitter.onNext(traverseFile()) })
                 .subscribeOn(Schedulers.io())
@@ -315,15 +318,15 @@ class ScanActivity : CommonActivity() {
     }
 
     private fun openSearchView() {
-        val animator = ViewAnimationUtils.createCircularReveal(app_search_view, centerX, centerY, 0f, radius)
+        val animator = ViewAnimationUtils.createCircularReveal(binding.appSearchView.root, centerX, centerY, 0f, radius)
         animator.duration = duration.toLong()
         animator.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationStart(animation: Animator) {
-                app_search_view.visibility = View.VISIBLE
+                binding.appSearchView.root.visibility = View.VISIBLE
             }
 
             override fun onAnimationEnd(animation: Animator) {
-                app_et_search.requestFocus()
+                binding.appSearchView.appEtSearch.requestFocus()
                 KeyboardUtils.showSoftInput(this@ScanActivity)
             }
         })
@@ -331,14 +334,14 @@ class ScanActivity : CommonActivity() {
     }
 
     private fun closeSearchView() {
-        val animator = ViewAnimationUtils.createCircularReveal(app_search_view, centerX, centerY, radius, 0f)
+        val animator = ViewAnimationUtils.createCircularReveal(binding.appSearchView.root, centerX, centerY, radius, 0f)
         animator.duration = duration.toLong()
         animator.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator) {
                 if (KeyboardUtils.isSoftInputVisible(this@ScanActivity)) {
                     KeyboardUtils.hideSoftInput(this@ScanActivity)
                 }
-                app_search_view.visibility = View.GONE
+                binding.appSearchView.root.visibility = View.GONE
             }
         })
         animator.start()
@@ -355,9 +358,9 @@ class ScanActivity : CommonActivity() {
 
     private fun updateUI() {
         val lac = AnimationUtils.loadLayoutAnimation(this, R.anim.app_layout_fall_down)
-        app_rv_select.layoutAnimation = lac
-        app_rv_select.adapter!!.notifyDataSetChanged()
-        app_rv_select.scheduleLayoutAnimation()
+        binding.appRvSelect.layoutAnimation = lac
+        binding.appRvSelect.adapter!!.notifyDataSetChanged()
+        binding.appRvSelect.scheduleLayoutAnimation()
     }
 
     companion object {

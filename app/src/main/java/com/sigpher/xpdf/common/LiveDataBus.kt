@@ -21,10 +21,10 @@ object LiveDataBus {
         private val observerMap: MutableMap<Observer<*>, Observer<*>> = mutableMapOf()
 
         fun observeSticky(
-            owner: () -> Lifecycle,
+            owner: LifecycleOwner,
             observer: (T) -> Unit
         ) {
-            super.observe(owner, observer)
+            super.observe(owner, Observer<T> { observer(it) })
         }
 
         fun observeForeverSticky(observer: Observer<in T>) {

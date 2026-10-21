@@ -20,16 +20,19 @@ import com.sigpher.xpdf.common.event.RecentPDFEvent
 import com.blankj.utilcode.util.ConvertUtils
 import com.blankj.utilcode.util.KeyboardUtils
 import com.github.anzewei.parallaxbacklayout.ParallaxBack
-import kotlinx.android.synthetic.main.app_activity_search.*
-import kotlinx.android.synthetic.main.app_include_searchview.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import com.sigpher.xpdf.databinding.AppActivitySearchBinding
 
 @ParallaxBack
 class SearchActivity : CommonActivity() {
 
     private var adapter: SearchAdapter? = null
+
+    private val binding by lazy { AppActivitySearchBinding.inflate(layoutInflater) }
+
+    override fun bindContentView() = binding.root
 
     override fun layoutId(): Int {
         return R.layout.app_activity_search
@@ -63,36 +66,36 @@ class SearchActivity : CommonActivity() {
         adapter?.update()
         // 实时更新最新阅读列表
         if (event.isFromPreviewActivity) { // 由 PreviewActivity 发出而接收
-            adapter?.filter?.filter(app_et_search.text)
+            adapter?.filter?.filter(binding.appSearchView.appEtSearch.text)
         }
     }
 
     private fun initView() {
         val pdfList = DataManager.getPdfList()
-        app_ibtn_back.setOnClickListener { finish() }
-        app_ibtn_inverse.setOnClickListener {
+        binding.appSearchView.appIbtnBack.setOnClickListener { finish() }
+        binding.appSearchView.appIbtnInverse.setOnClickListener {
             if (KeyboardUtils.isSoftInputVisible(this)) {
                 KeyboardUtils.hideSoftInput(this)
             }
-            app_ibtn_inverse.isSelected = !app_ibtn_inverse.isSelected
-            adapter?.setInverse(app_ibtn_inverse.isSelected)
-            adapter?.filter?.filter(app_et_search.text)
+            binding.appSearchView.appIbtnInverse.isSelected = !binding.appSearchView.appIbtnInverse.isSelected
+            adapter?.setInverse(binding.appSearchView.appIbtnInverse.isSelected)
+            adapter?.filter?.filter(binding.appSearchView.appEtSearch.text)
         }
-        app_ibtn_clear.setOnClickListener {
-            app_et_search.setText("")
+        binding.appSearchView.appIbtnClear.setOnClickListener {
+            binding.appSearchView.appEtSearch.setText("")
             if (!KeyboardUtils.isSoftInputVisible(this)) {
                 KeyboardUtils.showSoftInput(this)
             }
         }
-        app_et_search.addTextChangedListener(object : TextWatcherImpl() {
+        binding.appSearchView.appEtSearch.addTextChangedListener(object : TextWatcherImpl() {
             override fun onTextChanged(c: CharSequence, i: Int, i1: Int, i2: Int) {
-                app_ibtn_inverse.visibility = if (c.isEmpty()) View.GONE else View.VISIBLE
-                app_ibtn_clear.visibility = if (c.isEmpty()) View.GONE else View.VISIBLE
+                binding.appSearchView.appIbtnInverse.visibility = if (c.isEmpty()) View.GONE else View.VISIBLE
+                binding.appSearchView.appIbtnClear.visibility = if (c.isEmpty()) View.GONE else View.VISIBLE
                 adapter?.filter?.filter(c)
             }
         })
-        app_rv.addItemDecoration(XGridDecoration())
-        app_rv.addItemDecoration(YItemDecoration())
+        binding.appRv.addItemDecoration(XGridDecoration())
+        binding.appRv.addItemDecoration(YItemDecoration())
         val lm = GridLayoutManager(this, 3)
         lm.spanSizeLookup = object : SpanSizeLookup() {
             override fun getSpanSize(position: Int): Int {
@@ -103,9 +106,9 @@ class SearchActivity : CommonActivity() {
                 } else 1
             }
         }
-        app_rv.layoutManager = lm
+        binding.appRv.layoutManager = lm
         adapter = SearchAdapter(pdfList, false)
-        app_rv.adapter = adapter
+        binding.appRv.adapter = adapter
     }
 
     private fun initToolbar() {

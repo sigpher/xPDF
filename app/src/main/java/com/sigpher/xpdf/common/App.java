@@ -11,7 +11,6 @@ import com.sigpher.xpdf.common.greendao.DaoMaster;
 import com.sigpher.xpdf.common.utils.ShortcutUtils;
 import com.blankj.utilcode.util.SPStaticUtils;
 import com.github.anzewei.parallaxbacklayout.ParallaxHelper;
-import com.squareup.leakcanary.LeakCanary;
 
 /**
  * @author sigpher
@@ -37,7 +36,6 @@ public class App extends Application {
         super.onCreate();
         sContext = this.getApplicationContext();
 
-        leakCanary();
         ShortcutUtils.INSTANCE.init(this);
         DBHelper.init(this, AppConfig.DB_NAME);
 
@@ -63,14 +61,5 @@ public class App extends Application {
             return false;
         }
         return pi.firstInstallTime == pi.lastUpdateTime;
-    }
-
-    private void leakCanary() {
-        if (LeakCanary.isInAnalyzerProcess(this)) {
-            // This process is dedicated to LeakCanary for heap analysis.
-            // You should not init your app in that process.
-            return;
-        }
-        LeakCanary.install(this);
     }
 }

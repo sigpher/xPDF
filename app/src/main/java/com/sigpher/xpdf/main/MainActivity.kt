@@ -33,8 +33,6 @@ import com.sigpher.xpdf.settings.SettingsActivity
 import com.blankj.utilcode.constant.PermissionConstants
 import com.blankj.utilcode.util.*
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import kotlinx.android.synthetic.main.app_activity_main.*
-import kotlinx.android.synthetic.main.app_include_operation_bar.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -43,6 +41,7 @@ import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import java.io.File
 import java.util.*
+import com.sigpher.xpdf.databinding.AppActivityMainBinding
 
 /**
  * @author sigpher
@@ -203,12 +202,16 @@ class MainActivity : CommonActivity(), IMainView {
     }
 
     override fun onBackPressed() {
-        if (app_vg_operation.visibility == View.VISIBLE) {
+        if (binding.appIncludeOperationBar.appVgOperation.visibility == View.VISIBLE) {
             finishOperation()
         } else {
             super.onBackPressed()
         }
     }
+
+    private val binding by lazy { AppActivityMainBinding.inflate(layoutInflater) }
+
+    override fun bindContentView() = binding.root
 
     override fun layoutId(): Int = R.layout.app_activity_main
 
@@ -233,27 +236,27 @@ class MainActivity : CommonActivity(), IMainView {
     }
 
     fun startOperation() {
-        app_vp.setScrollable(false)
-        app_ibtn_create_shortcut.visibility =
+        binding.appVp.setScrollable(false)
+        binding.appIncludeOperationBar.appIbtnCreateShortcut.visibility =
                 if (operation?.showExport() == true)
                     View.VISIBLE
                 else
                     View.GONE
-        app_ibtn_select_all.isSelected = false
-        OperationBarHelper.show(app_vg_operation)
+        binding.appIncludeOperationBar.appIbtnSelectAll.isSelected = false
+        OperationBarHelper.show(binding.appIncludeOperationBar.appVgOperation)
     }
 
     fun finishOperation() {
-        app_vp.setScrollable(true)
-        OperationBarHelper.hide(app_vg_operation)
+        binding.appVp.setScrollable(true)
+        OperationBarHelper.hide(binding.appIncludeOperationBar.appVgOperation)
         operation?.cancelSelect()
     }
 
     fun selectResult(count: Int, selectAll: Boolean) {
-        app_ibtn_create_shortcut.isEnabled = count > 0
-        app_ibtn_delete.isEnabled = count > 0
-        app_ibtn_select_all.isSelected = selectAll
-        app_tv_operationbar_title.text = getString(R.string.app_selected_count, count)
+        binding.appIncludeOperationBar.appIbtnCreateShortcut.isEnabled = count > 0
+        binding.appIncludeOperationBar.appIbtnDelete.isEnabled = count > 0
+        binding.appIncludeOperationBar.appIbtnSelectAll.isSelected = selectAll
+        binding.appIncludeOperationBar.appTvOperationbarTitle.text = getString(R.string.app_selected_count, count)
     }
 
     override fun onShowMessage(stringId: Int): Unit = UiManager.showShort(stringId)
@@ -275,19 +278,19 @@ class MainActivity : CommonActivity(), IMainView {
     }
 
     private fun initView() {
-        app_ibtn_cancel.setOnClickListener { finishOperation() }
-        app_ibtn_create_shortcut.setOnClickListener {
+        binding.appIncludeOperationBar.appIbtnCancel.setOnClickListener { finishOperation() }
+        binding.appIncludeOperationBar.appIbtnCreateShortcut.setOnClickListener {
             operation?.createShortcut()
         }
-        app_ibtn_delete.setOnClickListener {
+        binding.appIncludeOperationBar.appIbtnDelete.setOnClickListener {
             deleteDialog.show()
             tvDeleteDescription?.text = operation?.deleteDescription()
             deleteLocal?.visibility = operation?.localDeleteVisibility() ?: View.GONE
         }
-        app_ibtn_select_all.setOnClickListener { operation?.selectAll(!it.isSelected) }
+        binding.appIncludeOperationBar.appIbtnSelectAll.setOnClickListener { operation?.selectAll(!it.isSelected) }
 
-        app_tab_layout.setupWithViewPager(app_vp)
-        app_vp.adapter = MainFragmentAdapter(supportFragmentManager)
+        binding.appTabLayout.setupWithViewPager(binding.appVp)
+        binding.appVp.adapter = MainFragmentAdapter(supportFragmentManager)
         supportActionBar?.setDisplayShowTitleEnabled(false)
     }
 
@@ -484,7 +487,7 @@ class MainActivity : CommonActivity(), IMainView {
     private fun shortcut(intent: Intent) {
         intent.getStringExtra(EXTRA_DIR_NAME)?.let {
             intent.extras?.remove(EXTRA_DIR_NAME)
-            app_vp.apply {
+            binding.appVp.apply {
                 currentItem = 1
                 post { (operation as? AllFragment2)?.openCollection(it) }
             }

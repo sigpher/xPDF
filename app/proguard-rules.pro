@@ -192,6 +192,9 @@ public static java.lang.String TABLENAME;
 -keep public class com.squareup.** { *;}
 -dontwarn com.squareup**
 
+# >>>>>>>>>>>> okdownload / findbugs 注解（base 库传递依赖，运行时不需要）
+-dontwarn edu.umd.cs.findbugs.annotations.**
+
 # >>>>>>>>>>>> okhttp & okio
 -dontwarn okhttp3.**
 -dontwarn okio.**

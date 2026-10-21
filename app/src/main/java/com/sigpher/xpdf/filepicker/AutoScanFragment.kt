@@ -10,14 +10,24 @@ import androidx.fragment.app.Fragment
 import com.sigpher.base.impl.OnClickListenerImpl
 import com.sigpher.xpdf.R
 import com.sigpher.xpdf.common.CommonFragment
-import kotlinx.android.synthetic.main.app_fragment_auto_scan.*
 import java.util.*
+import com.sigpher.xpdf.databinding.AppFragmentAutoScanBinding
 
 class AutoScanFragment : CommonFragment() {
 
+    private var _binding: AppFragmentAutoScanBinding? = null
+
+    private val binding get() = _binding!!
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? { // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.app_fragment_auto_scan, container, false)
+                              savedInstanceState: Bundle?): View { // Inflate the layout for this fragment
+        _binding = AppFragmentAutoScanBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -40,7 +50,7 @@ class AutoScanFragment : CommonFragment() {
     }
 
     private fun initView() {
-        app_btn_scan.setOnClickListener(object : OnClickListenerImpl() {
+        binding.appBtnScan.setOnClickListener(object : OnClickListenerImpl() {
             override fun onViewClick(v: View, interval: Long) {
                 ScanActivity.start(activity, (activity as SelectActivity).importeds as ArrayList<String?>, SelectActivity.REQUEST_CODE)
             }

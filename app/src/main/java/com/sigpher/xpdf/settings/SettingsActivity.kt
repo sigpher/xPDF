@@ -10,12 +10,16 @@ import com.sigpher.xpdf.R
 import com.sigpher.xpdf.common.CommonActivity
 import com.github.anzewei.parallaxbacklayout.ParallaxBack
 import com.github.anzewei.parallaxbacklayout.ParallaxHelper
-import kotlinx.android.synthetic.main.app_activity_settings.*
+import com.sigpher.xpdf.databinding.AppActivitySettingsBinding
 
 @ParallaxBack
 class SettingsActivity : CommonActivity() {
 
     var fromPreview = false
+
+    private val binding by lazy { AppActivitySettingsBinding.inflate(layoutInflater) }
+
+    override fun bindContentView() = binding.root
 
     override fun layoutId(): Int {
         return R.layout.app_activity_settings
@@ -57,8 +61,8 @@ class SettingsActivity : CommonActivity() {
         }
         toolbar?.setTitle(R.string.app_settings)
         val lm = LinearLayoutManager(this)
-        app_rv_settings.layoutManager = lm
-        app_rv_settings.adapter = SettingsAdapter()
+        binding.appRvSettings.layoutManager = lm
+        binding.appRvSettings.adapter = SettingsAdapter()
     }
 
     companion object {

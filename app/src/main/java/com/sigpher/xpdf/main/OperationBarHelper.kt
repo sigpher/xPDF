@@ -18,7 +18,7 @@ object OperationBarHelper {
                 .setDuration(100L)
                 .setInterpolator(AccelerateDecelerateInterpolator())
                 .setListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationStart(animation: Animator?) {
+                    override fun onAnimationStart(animation: Animator) {
                         view.visibility = View.VISIBLE
                     }
                 })
@@ -33,7 +33,7 @@ object OperationBarHelper {
                 .setDuration(100L)
                 .setInterpolator(AccelerateDecelerateInterpolator())
                 .setListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationEnd(animation: Animator?) {
+                    override fun onAnimationEnd(animation: Animator) {
                         view.visibility = View.GONE
                     }
                 })

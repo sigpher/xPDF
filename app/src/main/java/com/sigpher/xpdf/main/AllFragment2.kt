@@ -21,7 +21,6 @@ import com.sigpher.xpdf.common.utils.ShortcutUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.chad.library.adapter.base.callback.ItemDragAndSwipeCallback
 import com.chad.library.adapter.base.listener.OnItemDragListener
-import kotlinx.android.synthetic.main.app_fragment_all.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -30,6 +29,7 @@ import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import java.io.File
 import java.util.*
+import com.sigpher.xpdf.databinding.AppFragmentAllBinding
 
 /**
  * @author sigpher
@@ -45,9 +45,14 @@ class AllFragment2 : CommonFragment(), IOperation {
     private var xItemDecoration: RecyclerView.ItemDecoration? = null
     private var yItemDecoration: RecyclerView.ItemDecoration? = null
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    private var _binding: AppFragmentAllBinding? = null
+
+    private val binding get() = _binding!!
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = AppFragmentAllBinding.inflate(inflater, container, false)
         EventBus.getDefault().register(this)
-        return inflater.inflate(R.layout.app_fragment_all, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -55,7 +60,7 @@ class AllFragment2 : CommonFragment(), IOperation {
         isHorizontalLayout = Settings.linearLayout
         initView()
         LiveDataBus.with<Any>(CollectionFragment2.EVENT_UPDATE_ALL_FRAGMENT)
-                .observe(this::getLifecycle) { adapter.notifyDataSetChanged() }
+                .observe(this) { adapter.notifyDataSetChanged() }
     }
 
     override fun onStart() {
@@ -80,6 +85,7 @@ class AllFragment2 : CommonFragment(), IOperation {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        _binding = null
         EventBus.getDefault().unregister(this)
     }
 
@@ -166,15 +172,15 @@ class AllFragment2 : CommonFragment(), IOperation {
 
     private fun initView() {
         if (xItemDecoration != null) {
-            app_rv_all.removeItemDecoration(xItemDecoration!!)
+            binding.appRvAll.removeItemDecoration(xItemDecoration!!)
         }
         if (yItemDecoration != null) {
-            app_rv_all.removeItemDecoration(yItemDecoration!!)
+            binding.appRvAll.removeItemDecoration(yItemDecoration!!)
         }
         xItemDecoration = XGridDecoration()
         yItemDecoration = YGridDecoration()
-        app_rv_all.addItemDecoration(xItemDecoration!!)
-        app_rv_all.addItemDecoration(yItemDecoration!!)
+        binding.appRvAll.addItemDecoration(xItemDecoration!!)
+        binding.appRvAll.addItemDecoration(yItemDecoration!!)
         val lm = if (isHorizontalLayout) {
             LinearLayoutManager(activity)
         } else {
@@ -186,7 +192,7 @@ class AllFragment2 : CommonFragment(), IOperation {
                 }
             }
         }
-        app_rv_all.layoutManager = lm
+        binding.appRvAll.layoutManager = lm
         adapter = AllAdapter2(coverList)
         adapter.setOnItemClickListener { _, view, position ->
             if (adapter.isSelectMode) {
@@ -250,9 +256,9 @@ class AllFragment2 : CommonFragment(), IOperation {
             }
         })
         val dragHelper = ItemTouchHelper(ItemDragAndSwipeCallback(adapter))
-        dragHelper.attachToRecyclerView(app_rv_all)
+        dragHelper.attachToRecyclerView(binding.appRvAll)
         adapter.enableDragItem(dragHelper)
-        adapter.bindToRecyclerView(app_rv_all)
+        adapter.bindToRecyclerView(binding.appRvAll)
     }
 
     override fun createShortcut() {

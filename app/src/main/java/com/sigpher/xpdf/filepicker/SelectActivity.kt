@@ -19,10 +19,9 @@ import com.sigpher.xpdf.common.CommonActivity
 import com.blankj.utilcode.util.KeyboardUtils
 import com.github.anzewei.parallaxbacklayout.ParallaxBack
 import com.google.android.material.tabs.TabLayout
-import kotlinx.android.synthetic.main.app_activity_select.*
-import kotlinx.android.synthetic.main.app_include_searchview.*
 import java.util.*
 import kotlin.math.sqrt
+import com.sigpher.xpdf.databinding.AppActivitySelectBinding
 
 /**
  * @author sigpher
@@ -52,11 +51,11 @@ class SelectActivity : CommonActivity() {
     private var fragmentPagerAdapter: FragmentPagerAdapter? = null
 
     fun setRevealParam() {
-        app_search_view.post {
-            centerX = app_ibtn_search.left + app_ibtn_search.measuredWidth / 2
-            centerY = app_ibtn_search.top + app_ibtn_search.measuredHeight / 2
+        binding.appSearchView.root.post {
+            centerX = binding.appIbtnSearch.left + binding.appIbtnSearch.measuredWidth / 2
+            centerY = binding.appIbtnSearch.top + binding.appIbtnSearch.measuredHeight / 2
             val width = centerX * 2
-            val height = app_search_view.measuredHeight
+            val height = binding.appSearchView.root.measuredHeight
             radius = (sqrt(width * width + height * height.toDouble()) / 2).toFloat()
         }
     }
@@ -98,13 +97,17 @@ class SelectActivity : CommonActivity() {
     }
 
     override fun onBackPressed() {
-        if (app_search_view.visibility == View.VISIBLE) {
+        if (binding.appSearchView.root.visibility == View.VISIBLE) {
             closeSearchView()
             viewAllFragment?.setFocus()
         } else {
             super.onBackPressed()
         }
     }
+
+    private val binding by lazy { AppActivitySelectBinding.inflate(layoutInflater) }
+
+    override fun bindContentView() = binding.root
 
     override fun layoutId(): Int {
         return R.layout.app_activity_select
@@ -117,32 +120,32 @@ class SelectActivity : CommonActivity() {
     private fun initView() {
         val data = intent
         importeds = data.getStringArrayListExtra(EXTRA_IMPORTED)
-        app_ibtn_back.setOnClickListener { closeSearchView() }
-        app_ibtn_search.setOnClickListener { openSearchView() }
-        app_ibtn_inverse.setOnClickListener {
+        binding.appSearchView.appIbtnBack.setOnClickListener { closeSearchView() }
+        binding.appIbtnSearch.setOnClickListener { openSearchView() }
+        binding.appSearchView.appIbtnInverse.setOnClickListener {
             if (KeyboardUtils.isSoftInputVisible(this)) {
                 KeyboardUtils.hideSoftInput(this)
             }
-            app_ibtn_inverse.isSelected = !app_ibtn_inverse.isSelected
-            viewAllFragment?.adapter?.setInverse(app_ibtn_inverse.isSelected)
-            viewAllFragment?.adapter?.filter?.filter(app_et_search.text)
+            binding.appSearchView.appIbtnInverse.isSelected = !binding.appSearchView.appIbtnInverse.isSelected
+            viewAllFragment?.adapter?.setInverse(binding.appSearchView.appIbtnInverse.isSelected)
+            viewAllFragment?.adapter?.filter?.filter(binding.appSearchView.appEtSearch.text)
         }
-        app_ibtn_clear.setOnClickListener {
-            app_et_search.setText("")
+        binding.appSearchView.appIbtnClear.setOnClickListener {
+            binding.appSearchView.appEtSearch.setText("")
             if (!KeyboardUtils.isSoftInputVisible(this)) {
                 KeyboardUtils.showSoftInput(this)
             }
         }
-        app_et_search.addTextChangedListener(object : TextWatcherImpl() {
+        binding.appSearchView.appEtSearch.addTextChangedListener(object : TextWatcherImpl() {
             override fun onTextChanged(c: CharSequence, i: Int, i1: Int, i2: Int) {
-                app_ibtn_inverse.visibility = if (c.isEmpty()) View.GONE else View.VISIBLE
-                app_ibtn_clear.visibility = if (c.isEmpty()) View.GONE else View.VISIBLE
+                binding.appSearchView.appIbtnInverse.visibility = if (c.isEmpty()) View.GONE else View.VISIBLE
+                binding.appSearchView.appIbtnClear.visibility = if (c.isEmpty()) View.GONE else View.VISIBLE
                 viewAllFragment?.adapter?.filter?.filter(c)
             }
         })
-        app_tab_layout.setupWithViewPager(app_vp)
+        binding.appTabLayout.setupWithViewPager(binding.appVp)
         fragmentPagerAdapter = SelectFragmentAdapter(supportFragmentManager)
-        app_vp.adapter = fragmentPagerAdapter
+        binding.appVp.adapter = fragmentPagerAdapter
     }
 
     private fun initToolbar() {
@@ -155,15 +158,15 @@ class SelectActivity : CommonActivity() {
     }
 
     private fun openSearchView() {
-        val animator = ViewAnimationUtils.createCircularReveal(app_search_view, centerX, centerY, 0f, radius)
+        val animator = ViewAnimationUtils.createCircularReveal(binding.appSearchView.root, centerX, centerY, 0f, radius)
         animator.duration = duration.toLong()
         animator.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationStart(animation: Animator) {
-                app_search_view.visibility = View.VISIBLE
+                binding.appSearchView.root.visibility = View.VISIBLE
             }
 
             override fun onAnimationEnd(animation: Animator) {
-                app_et_search.requestFocus()
+                binding.appSearchView.appEtSearch.requestFocus()
                 KeyboardUtils.showSoftInput(this@SelectActivity)
             }
         })
@@ -171,14 +174,14 @@ class SelectActivity : CommonActivity() {
     }
 
     fun closeSearchView() {
-        val animator = ViewAnimationUtils.createCircularReveal(app_search_view, centerX, centerY, radius, 0f)
+        val animator = ViewAnimationUtils.createCircularReveal(binding.appSearchView.root, centerX, centerY, radius, 0f)
         animator.duration = duration.toLong()
         animator.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator) {
                 if (KeyboardUtils.isSoftInputVisible(this@SelectActivity)) {
                     KeyboardUtils.hideSoftInput(this@SelectActivity)
                 }
-                app_search_view.visibility = View.GONE
+                binding.appSearchView.root.visibility = View.GONE
             }
         })
         animator.start()

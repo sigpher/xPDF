@@ -24,10 +24,9 @@ import com.blankj.utilcode.util.KeyboardUtils
 import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.StringUtils
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import kotlinx.android.synthetic.main.app_fragment_view_all.*
-import kotlinx.android.synthetic.main.app_include_tv_path.*
 import java.io.File
 import java.util.*
+import com.sigpher.xpdf.databinding.AppFragmentViewAllBinding
 
 /**
  * A simple [Fragment] subclass.
@@ -81,27 +80,31 @@ class ViewAllFragment : CommonFragment(), IViewAllView, ViewAllAdapter.Callback 
     private val fileList: MutableList<File> = ArrayList()
     private val onClickListener = View.OnClickListener {
         val path = it.tag as String
-        val index = app_ll.indexOfChild(it)
-        val count = app_ll.childCount
-        app_ll.removeViews(index + 1, count - index - 1)
+        val index = binding.appLl.indexOfChild(it)
+        val count = binding.appLl.childCount
+        binding.appLl.removeViews(index + 1, count - index - 1)
         presenter.listFile(path)
     }
     private val dataObserver: AdapterDataObserver = object : AdapterDataObserver() {
         override fun onChanged() {
             selectList.clear()
             (activity as SelectActivity).ibtnSelectAll.isSelected = false
-            app_btn_import_count.text = getString(R.string.app_import_count, 0)
+            binding.appBtnImportCount.text = getString(R.string.app_import_count, 0)
             val enableSelectAll = adapter?.reset() ?: false
             (activity as SelectActivity).ibtnSelectAll.isEnabled = enableSelectAll
         }
     }
 
+    private var _binding: AppFragmentViewAllBinding? = null
+
+    private val binding get() = _binding!!
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? { // Inflate the layout for this fragment
+                              savedInstanceState: Bundle?): View { // Inflate the layout for this fragment
+        _binding = AppFragmentViewAllBinding.inflate(inflater, container, false)
         presenter = ViewAllPresenter(this)
-        val view = inflater.inflate(R.layout.app_fragment_view_all, container, false)
         presenter.listStorage()
-        return view
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -110,7 +113,7 @@ class ViewAllFragment : CommonFragment(), IViewAllView, ViewAllAdapter.Callback 
     }
 
     fun setFocus() {
-        app_horizontal_sv.requestFocus()
+        binding.appHorizontalSv.requestFocus()
     }
 
     override fun onResume() {
@@ -118,9 +121,9 @@ class ViewAllFragment : CommonFragment(), IViewAllView, ViewAllAdapter.Callback 
         (activity as SelectActivity).ibtnSelectAll.visibility = View.VISIBLE
         (activity as SelectActivity).ibtnSearch.visibility = View.VISIBLE
         (activity as SelectActivity).setRevealParam()
-        app_horizontal_sv.isFocusableInTouchMode = true
-        app_horizontal_sv.requestFocus()
-        app_horizontal_sv.setOnKeyListener(View.OnKeyListener { _, keyCode, event ->
+        binding.appHorizontalSv.isFocusableInTouchMode = true
+        binding.appHorizontalSv.requestFocus()
+        binding.appHorizontalSv.setOnKeyListener(View.OnKeyListener { _, keyCode, event ->
             if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_BACK) {
                 if (!presenter.canFinish()) {
                     (activity as SelectActivity).ibtnInverse.isSelected = false
@@ -135,11 +138,12 @@ class ViewAllFragment : CommonFragment(), IViewAllView, ViewAllAdapter.Callback 
 
     override fun onPause() {
         super.onPause()
-        app_horizontal_sv.setOnKeyListener(null)
+        binding.appHorizontalSv.setOnKeyListener(null)
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        _binding = null
         adapter?.unregisterAdapterDataObserver(dataObserver)
         presenter.detach()
     }
@@ -155,7 +159,7 @@ class ViewAllFragment : CommonFragment(), IViewAllView, ViewAllAdapter.Callback 
     }
 
     override fun onShowPath(pathList: List<String>) {
-        app_ll.removeViews(1, app_ll.childCount - 1)
+        binding.appLl.removeViews(1, binding.appLl.childCount - 1)
         val inflater = LayoutInflater.from(context)
         val parent = StringBuilder(IViewAllPresenter.ROOT_PATH)
         for (dirName in pathList) {
@@ -164,7 +168,7 @@ class ViewAllFragment : CommonFragment(), IViewAllView, ViewAllAdapter.Callback 
             tvPath.text = dirName
             parent.append("/").append(dirName) // 当前节点生成后即变成下一节点的父节点
             tvPath.tag = parent.toString()
-            app_ll.addView(tvPath)
+            binding.appLl.addView(tvPath)
         }
     }
 
@@ -177,15 +181,15 @@ class ViewAllFragment : CommonFragment(), IViewAllView, ViewAllAdapter.Callback 
         if (total != 0) {
             (activity as SelectActivity).ibtnSelectAll.isSelected = pathList.size == total
         }
-        app_btn_import_count.text = getString(R.string.app_import_count, pathList.size)
+        binding.appBtnImportCount.text = getString(R.string.app_import_count, pathList.size)
         selectList.clear()
         selectList.addAll(pathList)
     }
 
     private fun initView() {
-        app_tv_path.setOnClickListener(onClickListener)
-        app_tv_path.tag = IViewAllPresenter.ROOT_PATH // 原始路径
-        app_btn_import_count.setOnClickListener(object : OnClickListenerImpl() {
+        binding.appIncludeTvPath.appTvPath.setOnClickListener(onClickListener)
+        binding.appIncludeTvPath.appTvPath.tag = IViewAllPresenter.ROOT_PATH // 原始路径
+        binding.appBtnImportCount.setOnClickListener(object : OnClickListenerImpl() {
             @SuppressLint("SetTextI18n")
             override fun onViewClick(v: View, interval: Long) {
                 if (KeyboardUtils.isSoftInputVisible(activity)) {
@@ -204,10 +208,10 @@ class ViewAllFragment : CommonFragment(), IViewAllView, ViewAllAdapter.Callback 
         }
         (activity as SelectActivity).ibtnSelectAll.isEnabled = false // XML 设置无效，只能这里初始化
         val lm: RecyclerView.LayoutManager = LinearLayoutManager(activity)
-        app_rv_select.layoutManager = lm
+        binding.appRvSelect.layoutManager = lm
         adapter = ViewAllAdapter(fileList, (activity as SelectActivity).importeds, this)
         adapter?.registerAdapterDataObserver(dataObserver)
-        app_rv_select.adapter = adapter
+        binding.appRvSelect.adapter = adapter
     }
 
     private fun setResultBack(type: Int, groupName: String?) {
