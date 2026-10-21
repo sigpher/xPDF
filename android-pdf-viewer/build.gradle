@@ -25,7 +25,11 @@ android {
 }
 
 dependencies {
-    api 'com.github.barteksc:pdfium-android:1.9.0'
+    // pdfium 原生绑定（com.shockwave.pdfium）。JCenter 已停服，坐标由阿里云镜像兜底解析；
+    // 该库本身不引用 support 库，按其传递依赖显式排除，避免 support-v4 回流。
+    api('com.github.barteksc:pdfium-android:1.9.0') {
+        exclude group: 'com.android.support'
+    }
     // 基础库改用 sigpher/Base fork（原 com.aaron:base 依赖的 JCenter 已停服）
     implementation 'com.github.sigpher:Base:1.1.5-beta9'
     implementation 'androidx.core:core-ktx:1.13.1'

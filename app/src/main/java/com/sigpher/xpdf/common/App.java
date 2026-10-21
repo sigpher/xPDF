@@ -45,7 +45,8 @@ public class App extends Application {
             SPStaticUtils.put(DB_VERSION, DaoMaster.SCHEMA_VERSION);
         }
 
-        DataManager.init();
+        // 书库数据在 IO 线程加载，主线程不等待；加载完成后由 EventBus 通知刷新
+        DataManager.initAsync();
         registerActivityLifecycleCallbacks(ParallaxHelper.getInstance());
     }
 
