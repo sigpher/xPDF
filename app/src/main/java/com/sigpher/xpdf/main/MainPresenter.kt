@@ -24,9 +24,11 @@ internal class MainPresenter(view: IMainView) : IMainPresenter(view) {
         (view as CoroutineScope).launch {
             view.onShowLoading()
             val count = withContext(Dispatchers.IO) {
-                ImportPipeline.importUris(context, uris, groupName)
+                val imported = ImportPipeline.importUris(context, uris, groupName)
+                // 刷新缓存同样在 IO 线程完成，避免导入结束后主线程再全表查询
+                DataManager.updateAll()
+                imported
             }
-            DataManager.updateAll()
             view.onUpdate()
             view.onHideLoading()
             if (count <= 0) {
@@ -47,9 +49,10 @@ internal class MainPresenter(view: IMainView) : IMainPresenter(view) {
                         ?: context.getString(R.string.app_import_folder)
             }
             val count = withContext(Dispatchers.IO) {
-                ImportPipeline.importUris(context, uris, groupName)
+                val imported = ImportPipeline.importUris(context, uris, groupName)
+                DataManager.updateAll()
+                imported
             }
-            DataManager.updateAll()
             view.onUpdate()
             view.onHideLoading()
             if (count <= 0) {
