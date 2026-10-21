@@ -2,30 +2,6 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
 
-ext {
-    bintrayRepo = 'maven'
-    bintrayName = 'android-pdf-viewer'
-
-    publishedGroupId = 'com.github.barteksc'
-    libraryName = 'AndroidPdfViewer'
-    artifact = 'android-pdf-viewer'
-
-    libraryDescription = 'Android view for displaying PDFs rendered with PdfiumAndroid'
-
-    siteUrl = 'https://github.com/barteksc/AndroidPdfViewer'
-    gitUrl = 'https://github.com/barteksc/AndroidPdfViewer.git'
-
-    libraryVersion = '3.2.0-beta.1'
-
-    developerId = 'barteksc'
-    developerName = 'Bartosz Schiller'
-    developerEmail = 'barteksch@boo.pl'
-
-    licenseName = 'The Apache Software License, Version 2.0'
-    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-    allLicenses = ["Apache-2.0"]
-}
-
 android {
     compileSdkVersion 29
 
@@ -39,7 +15,6 @@ android {
 }
 
 dependencies {
-    implementation 'com.android.support:support-compat:28.0.0'
     api 'com.github.barteksc:pdfium-android:1.9.0'
     // 基础库改用 sigpher/Base fork（原 com.aaron:base 依赖的 JCenter 已停服）
     implementation 'com.github.sigpher:Base:1.1.5-beta9'
@@ -48,7 +23,6 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 
-apply from: 'bintray.gradle'
 repositories {
     mavenCentral()
 }

@@ -23,7 +23,6 @@ internal class AboutPresenter(view: IAboutView) : IAboutPresenter(view) {
                 "RealtimeBlurView",
                 "ParallaxBackLayout",
                 "greenDAO",
-                "ButterKnife",
                 "Glide",
                 "StatusBarUtil",
                 "EventBus",

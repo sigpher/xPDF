@@ -25,7 +25,6 @@ import com.sigpher.xpdf.about.AboutActivity
 import com.sigpher.xpdf.common.*
 import com.sigpher.xpdf.common.bean.Backup
 import com.sigpher.xpdf.common.bean.Cover
-import com.sigpher.xpdf.common.event.HotfixEvent
 import com.sigpher.xpdf.common.event.ImportEvent
 import com.sigpher.xpdf.common.utils.Base64
 import com.sigpher.xpdf.common.widgets.ImageTextView
@@ -106,29 +105,6 @@ class MainActivity : CommonActivity(), IMainView {
             elevation = ConvertUtils.dp2px(4f).toFloat()
         }
     }
-    /*private val hotfixDialog: Dialog by lazy(LazyThreadSafetyMode.NONE) {
-        DialogManager.createDoubleBtnDialog(this) { tvTitle, tvContent, btnLeft, btnRight ->
-            tvTitle.setText(R.string.app_find_update)
-            tvContent.setText(R.string.app_restart_to_update)
-            btnLeft.setText(R.string.app_later)
-            btnLeft.setOnClickListener(object : OnClickListenerImpl() {
-                override fun onViewClick(v: View, interval: Long) {
-                    hotfixDialog.dismiss()
-                }
-            })
-            btnRight.setText(R.string.app_restart_right_now)
-            btnRight.setOnClickListener(object : OnClickListenerImpl() {
-                override fun onViewClick(v: View, interval: Long) {
-                    val intent = packageManager.getLaunchIntentForPackage(packageName)
-                    if (intent != null) {
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                        startActivity(intent)
-                        Process.killProcess(Process.myPid())
-                    }
-                }
-            })
-        }
-    }*/
     private val deleteDialog: BottomSheetDialog by lazy(LazyThreadSafetyMode.NONE) {
         DialogManager.createDeleteDialog(this) { tv, deleteLocal, btnLeft, btnRight ->
             tvDeleteDescription = tv
@@ -175,8 +151,6 @@ class MainActivity : CommonActivity(), IMainView {
     private var ok: View? = null
     private var rotationAnim: Animator? = null
     private var colorAnim: Animator? = null
-
-    private var receiveHotfix = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.AppTheme)
@@ -233,21 +207,12 @@ class MainActivity : CommonActivity(), IMainView {
             finishOperation()
         } else {
             super.onBackPressed()
-            if (receiveHotfix) {
-                Process.killProcess(Process.myPid())
-            }
         }
     }
 
     override fun layoutId(): Int = R.layout.app_activity_main
 
     override fun createToolbar(): Toolbar? = findViewById(R.id.app_toolbar)
-
-    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
-    fun onHotfixSuccess(event: HotfixEvent) {
-        receiveHotfix = true
-//        hotfixDialog.show()
-    }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onImportEvent(event: ImportEvent) {

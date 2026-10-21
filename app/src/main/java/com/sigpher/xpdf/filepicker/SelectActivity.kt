@@ -12,13 +12,9 @@ import android.widget.ImageButton
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.viewpager.widget.ViewPager
-import butterknife.BindView
-import butterknife.ButterKnife
-import butterknife.Unbinder
 import com.sigpher.base.impl.TextWatcherImpl
 import com.sigpher.base.util.StatusBarUtils
 import com.sigpher.xpdf.R
-import com.sigpher.xpdf.R2
 import com.sigpher.xpdf.common.CommonActivity
 import com.blankj.utilcode.util.KeyboardUtils
 import com.github.anzewei.parallaxbacklayout.ParallaxBack

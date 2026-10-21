@@ -27,7 +27,6 @@
 -keep class com.shockwave.**
 
 # RealtimeBlurView
--keep class android.support.v8.renderscript.** { *; }
 -keep class androidx.renderscript.** { *; }
 
 # GreenDAO
@@ -40,9 +39,6 @@ public static java.lang.String TABLENAME;
 #-dontwarn net.sqlcipher.database.**
 # If you do not use RxJava:
 #-dontwarn rx.**
-
-# support library
--keep class android.support.**{*;}
 
 # ============================== 基本不用动区域 begin ==============================
 
@@ -156,27 +152,8 @@ public static java.lang.String TABLENAME;
     public static <fields>;
 }
 
-# The support library contains references to newer platform versions.
-# Don't warn about those in case this app is linking against an older
-# platform version.  We know about them, and they are safe.
--dontwarn android.support.**
-
-
-# Understand the @Keep support annotation.
--keep class android.support.annotation.Keep
-
--keep @android.support.annotation.Keep class * {*;}
-
--keepclasseswithmembers class * {
-    @android.support.annotation.Keep <methods>;
-}
--keepclasseswithmembers class * {
-    @android.support.annotation.Keep <fields>;
-}
-
--keepclasseswithmembers class * {
-    @android.support.annotation.Keep <init>(...);
-}
+# @Keep 注解（androidx）由 R8 原生识别，这里仅保留类本身避免误删
+-keep class androidx.annotation.Keep
 
 # >>>>>>>>>>>> webview相关
 -dontwarn android.webkit**
@@ -215,10 +192,6 @@ public static java.lang.String TABLENAME;
 -keep public class com.squareup.** { *;}
 -dontwarn com.squareup**
 
-# >>>>>>>>>>>> alibaba全家桶
--keep public class com.alibaba.** { *;}
--dontwarn com.alibaba**
-
 # >>>>>>>>>>>> okhttp & okio
 -dontwarn okhttp3.**
 -dontwarn okio.**
@@ -250,20 +223,4 @@ public static java.lang.String TABLENAME;
 }
 #-keepresourcexmlelements manifest/application/meta-data@value=GlideModule
 
-# >>>>>>>>>>>> butterknife
--keep class butterknife.** { *; }
--dontwarn butterknife.internal.**
--keep class **$$ViewBinder { *; }
--keepclasseswithmembernames class * {
-    @butterknife.* <fields>;
-}
--keepclasseswithmembernames class * {
-    @butterknife.* <methods>;
-}
-
-# >>>>>>>>>>>> agentweb
--keep class com.just.agentweb.** {
-    *;
-}
--dontwarn com.just.agentweb.**
 # ============================== 框架中使用到的第三方依赖 end ==============================
