@@ -7,6 +7,7 @@ import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
@@ -78,7 +79,11 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
                 }
             })
 
-            initPdf(uri, pdf)
+            // 文档已加载时只切换色彩矩阵，保留已渲染的页面缓存；未加载时由 initPdf 里的 nightMode() 生效
+            if (docLoaded) {
+                binding.appPdfview.setNightMode(it == true)
+                binding.appPdfview.invalidate()
+            }
 
             val textColor = if (it) R.color.base_black else R.color.base_white
             val bg = if (it) R.drawable.app_shape_bg_scale_view_white else R.drawable.app_shape_bg_scale_view_black
@@ -165,11 +170,14 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
     private var canvas: Canvas? = null // AndroidPDFView 的画布
     private var paint: Paint = Paint() // 画书签的画笔
     private var pageWidth = 0F
+    private var docLoaded = false // 文档是否已加载完成，用于区分"首次加载"和"运行中切换"
+    private var bookmarkBitmap: Bitmap? = null // 书签角标，解码一次复用
     //endregion
 
     //region Lifecycle
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        bookmarkBitmap = BitmapFactory.decodeResource(resources, R.drawable.app_img_bookmark)
         initView(savedInstanceState)
         EventBus.getDefault().register(this)
 
@@ -250,6 +258,9 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
         super.onDestroy()
         EventBus.getDefault().unregister(this)
         binding.appPdfview.recycle()
+        bookmarkBitmap?.recycle()
+        bookmarkBitmap = null
+        canvas = null
     }
     //endregion
 
@@ -766,6 +777,7 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
 
     @SuppressLint("ClickableViewAccessibility", "SetTextI18n")
     private fun initPdf(uri: Uri?, pdf: PDF?) {
+        docLoaded = false
         binding.appSbProgress.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
                 binding.appTvPageinfo.text = (i + 1).toString() + " / " + pageCount
@@ -853,6 +865,7 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
                     binding.appSbProgress.progress = page
                 }
                 .onLoad {
+                    docLoaded = true
                     initContentAndBookmark()
                     initAboutPage()
                     initBgSize()
@@ -988,7 +1001,10 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
     }
 
     private fun drawBookmark(canvas: Canvas?, pageWidth: Float) {
-        val bitmap = BitmapFactory.decodeResource(resources, R.drawable.app_img_bookmark)
+        val bitmap = bookmarkBitmap ?: return
+        if (bitmap.isRecycled) {
+            return
+        }
         val curPageWidth = pageWidth * scaleFactor
         val margin = (curPageWidth - pageWidth) / 3f
         val left = pageWidth - ConvertUtils.dp2px(36f) - margin

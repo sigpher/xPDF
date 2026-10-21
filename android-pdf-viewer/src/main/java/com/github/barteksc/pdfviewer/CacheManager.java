@@ -38,6 +38,11 @@ class CacheManager {
 
     private final List<PagePart> thumbnails;
 
+    /**
+     * 缩略图快照：onDraw 每帧读取，避免在绘制线程持锁遍历可变集合
+     */
+    private volatile List<PagePart> thumbnailSnapshot = java.util.Collections.emptyList();
+
     private final Object passiveActiveLock = new Object();
 
     private final PagePartComparator orderComparator = new PagePartComparator();
@@ -89,6 +94,7 @@ class CacheManager {
 
             // Then add thumbnail
             addWithoutDuplicates(thumbnails, part);
+            thumbnailSnapshot = new ArrayList<>(thumbnails);
         }
 
     }
@@ -156,9 +162,7 @@ class CacheManager {
     }
 
     public List<PagePart> getThumbnails() {
-        synchronized (thumbnails) {
-            return thumbnails;
-        }
+        return thumbnailSnapshot;
     }
 
     public void recycle() {
@@ -177,6 +181,7 @@ class CacheManager {
                 part.getRenderedBitmap().recycle();
             }
             thumbnails.clear();
+            thumbnailSnapshot = java.util.Collections.emptyList();
         }
     }
 

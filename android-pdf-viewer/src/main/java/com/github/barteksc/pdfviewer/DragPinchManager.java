@@ -47,6 +47,13 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
     private boolean scaling = false;
     private boolean enabled = false;
 
+    /**
+     * 拖动过程中重建渲染任务的最小间隔（约 1.5 帧），避免每个 MOVE 事件都取消并重建全部渲染任务
+     */
+    private static final long SCROLL_RENDER_INTERVAL = 24L;
+
+    private long lastScrollRenderTime = 0L;
+
     DragPinchManager(PDFView pdfView, AnimationManager animationManager) {
         this.pdfView = pdfView;
         this.animationManager = animationManager;
@@ -198,7 +205,14 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
             pdfView.moveRelativeTo(-distanceX, -distanceY);
         }
         if (!scaling || pdfView.doRenderDuringScale()) {
-            pdfView.loadPageByOffset();
+            // MOVE 事件比屏幕刷新手得多，节流后只重绘；抬指时 onScrollEnd 会完整重建
+            long now = android.os.SystemClock.uptimeMillis();
+            if (now - lastScrollRenderTime >= SCROLL_RENDER_INTERVAL) {
+                lastScrollRenderTime = now;
+                pdfView.loadPageByOffset();
+            } else {
+                pdfView.invalidate();
+            }
         }
         return true;
     }
