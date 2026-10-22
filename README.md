@@ -170,7 +170,8 @@ xPDF/
 - **修复导入后崩溃**：BRVAH 默认用反射读取适配器泛型参数来实例化 `ViewHolder`，R8 把 `BaseListAdapter` 合并优化后反射失败、退化成通用 `BaseViewHolder`，`convert(helper: CollectionHolder, …)` 的强制转换抛 `ClassCastException`（一导入书籍就崩，且之后每次启动都崩）；改为在基类里用抽象工厂 `createHolder()` 自行创建
 - **修复打开 PDF 崩溃**：书签 JSON 用匿名 `TypeToken<List<Bookmark>>` 解析，R8 合并匿名内部类后泛型签名丢失，抛 `RuntimeException: Missing type parameter.`；改用 `Array<Bookmark>::class.java` 解析
 - **修复书签/备份 JSON 字段名被混淆**：Gson 按字段名读写，新增 `<fields>` 保留规则，避免升级后旧书签、旧备份读不回来
-- 体积：APK 5,369,260 → 5,369,427 字节（dex 类数 2566 → 2563）
+- **修复封面不生成**：`PdfUtils.renderPage` 用 `RGB_565` 位图调用 `PdfRenderer.Page.render`，系统抛 `Unsupported pixel format` 且异常被吞，封面字段存成空值、书库一直显示占位图；改用 `ARGB_8888`
+- 体积：APK 5,369,260 → 5,369,442 字节（dex 类数 2566 → 2563）
 
 ### 0.1.0（versionCode 1）
 
