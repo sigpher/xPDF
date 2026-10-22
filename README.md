@@ -4,7 +4,7 @@
 
 - 应用名：`xPDF`
 - 包名（applicationId）：`com.sigpher.xpdf`
-- 版本：`3.0.0`（versionCode `33`）
+- 版本：`3.1.0`（versionCode `34`）
 - 最低支持：Android 5.0（API 21），compileSdk / targetSdk 34
 - 产物：**release**（约 5.1 MB，仅 arm64-v8a）与 **debug** 两个变体（`app/build/outputs/apk/release/app-release.apk`）
 
@@ -157,6 +157,41 @@ xPDF/
 > 3.0.0 起不再申请 `INTERNET` 等网络权限，应用完全离线运行；targetSdk 34 起也不再声明 `READ/WRITE_EXTERNAL_STORAGE`。
 
 ## 版本变更
+
+### 3.1.0（versionCode 34）
+
+一次性完成工具链、性能、体积与架构四类改造，功能集合与 3.0.0 保持一致（不新增业务功能）。
+
+**构建工具链**
+
+- Gradle 5.4.1 → 8.7、AGP 3.4.1 → 8.5.2、Kotlin 1.3.61 → 1.9.24、JDK 8 → 17、compileSdk/targetSdk 29/28 → 34
+- 移除 GreenDAO / ButterKnife / Bintray 插件与残留配置，恢复 debug 变体（LeakCanary 2.14 仅 debug）
+- `kotlin-android-extensions` 下线，28 个文件迁移到 ViewBinding
+- 基础库切到瘦身后的 `com.github.sigpher:Base:1.2.0`（AAR 25 KB，去掉 retrofit/rxjava/autodispose/sonic/okdownload/jaeger）
+
+**性能**
+
+- 书库启动改为 IO 异步加载，主线程不再同步查库；最近阅读列表由 N+1 查询改为两次查询 + HashMap 关联
+- 目录 → PDF 建立索引，按分组取书不再全表遍历 + 每次排序
+- 阅读器：夜间模式改为色彩矩阵即时切换（不再重载文档）、书签角标位图解码一次、滚动渲染 24ms 节流、封面单次打开 + JPEG 80 + 关闭 fd
+- `Settings` 常驻内存，翻页/绘制路径不再触达 SharedPreferences
+
+**架构**
+
+- 新增 `data/ImportPipeline`（SAF 导入管道）、`data/PreviewRepository`（进度持久化）、`common/adapter`（`BaseListAdapter`/`CoverGridRenderer`/`KeywordFilter`/`ItemTypes`）
+- 删除基于反射的 `LiveDataBus`，统一走 EventBus；删除自研文件浏览（`filepicker` 包 13 个文件）与死布局/死方法
+- `IPresenter` 支持 `detach()`；修复关于页开源组件清单因数组长度不一致而不显示的问题
+- 业务代码 Kotlin 化：事件、Holder、装饰器、`UiManager`、`DialogUtils`、`GroupingAdapter`、`Bookmark`、`PdfUtils`、`App`、`Base64`（改用 `android.util.Base64`）
+
+**合规与存储**
+
+- 导入改为系统文件选择器（多选）+ 目录树批量导入，文件复制到应用私有目录，**不再申请任何存储权限**
+- 旧版本录入的外部路径在启动时后台检测，失效时一次性引导重新导入（不删除记录）
+- `FileProvider` 路径收窄为 `external-files-path` + `cache-path`；四大组件补齐 `exported`，`PendingIntent` 补 `FLAG_IMMUTABLE`
+
+**体积**
+
+- APK 5.6 MB → 5.12 MB；dex 类数 3422 → 2781
 
 ### 3.0.0（versionCode 33）
 
