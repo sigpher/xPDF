@@ -129,7 +129,8 @@ xPDF/
 
 ## 技术实现要点
 
-- **架构**：MVP + Repository 雏形。`common/MVP.kt` 定义 `IView` / `IPresenter` 契约；导入等耗时操作统一走 `data/ImportPipeline`（suspend + `Dispatchers.IO`）。
+- **架构**：MVP + Repository 雏形。`common/MVP.kt` 定义 `IView` / `IPresenter` 契约（Presenter 支持 `detach()`）；导入等耗时操作统一走 `data/ImportPipeline`（suspend + `Dispatchers.IO`）。
+- **语言**：业务代码已全面 Kotlin 化（事件、Holder、装饰器、UiManager、DialogUtils、GroupingAdapter、Bookmark、PdfUtils、App 等）；仍保留 Java 的只有三类——greenDAO 生成物（`DaoMaster`/`DaoSession`/`*Dao`/`MigrationHelper`/`UpdateOpenHelper`）、4 个 greenDAO 实体，以及 3 个自定义 View（`ImageTextView`/`BorderImageView`/`NewViewPager`）与待替换的 `DataManager`。
 - **UI**：AppCompat + Material Components + `BaseRecyclerViewAdapterHelper`；视图绑定全部迁移到 **ViewBinding**（`kotlin-android-extensions` 已下线）；`ParallaxBackLayout` 提供侧滑返回；`RealtimeBlurView` 实现毛玻璃遮罩。
 - **数据层**：GreenDAO 3.3.0（DAO 作为源码维护，不再用 gradle 插件生成），`schemaVersion 3`；`DataManager` 维护书库内存缓存与「目录 → PDF」索引，启动时在 IO 线程异步加载。
 - **事件通信**：EventBus 3.3.1。

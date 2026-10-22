@@ -7,11 +7,8 @@ import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Paint
 import android.net.Uri
 import android.os.Bundle
 import android.view.*
@@ -28,6 +25,7 @@ import com.sigpher.xpdf.common.*
 import com.sigpher.xpdf.common.bean.PDF
 import com.sigpher.xpdf.common.event.RecentPDFEvent
 import com.sigpher.xpdf.common.utils.NotchUtils
+import com.sigpher.xpdf.data.PreviewRepository
 import com.sigpher.xpdf.settings.SettingsActivity.Companion.start
 import com.blankj.utilcode.util.*
 import com.github.barteksc.pdfviewer.PDFView
@@ -40,7 +38,6 @@ import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 import java.io.File
 import java.text.DateFormat
-import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.min
@@ -115,14 +112,13 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
     }
     private val updateDB: MutableLiveData<Int> = MutableLiveData<Int>().apply {
         observe(this@PreviewActivity) {
-            pdf?.run {
-                this.curPage = this@PreviewActivity.curPage
-                this.progress = getPercent(curPage + 1, pageCount)
-                this.bookmark = GsonUtils.toJson(bookmarkMap.values)
-                this.scaleFactor = this@PreviewActivity.scaleFactor
-                DBHelper.updatePDF(this)
-                DataManager.updatePDFs()
-            }
+            PreviewRepository.saveProgress(
+                    pdf = pdf,
+                    curPage = curPage,
+                    totalPage = pageCount,
+                    bookmarkJson = GsonUtils.toJson(bookmarkMap.values),
+                    scaleFactor = scaleFactor
+            )
         }
     }
     private val alertDialog: Dialog by lazy(LazyThreadSafetyMode.NONE) {
@@ -168,16 +164,15 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
     private var previousPage = 0 // 记录 redo/undo的页码
     private var nextPage = 0
     private var canvas: Canvas? = null // AndroidPDFView 的画布
-    private var paint: Paint = Paint() // 画书签的画笔
     private var pageWidth = 0F
     private var docLoaded = false // 文档是否已加载完成，用于区分"首次加载"和"运行中切换"
-    private var bookmarkBitmap: Bitmap? = null // 书签角标，解码一次复用
+    private lateinit var bookmarkBadge: BookmarkBadgeRenderer // 书签角标，位图解码一次复用
     //endregion
 
     //region Lifecycle
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        bookmarkBitmap = BitmapFactory.decodeResource(resources, R.drawable.app_img_bookmark)
+        bookmarkBadge = BookmarkBadgeRenderer(resources)
         initView(savedInstanceState)
         EventBus.getDefault().register(this)
 
@@ -258,8 +253,7 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
         super.onDestroy()
         EventBus.getDefault().unregister(this)
         binding.appPdfview.recycle()
-        bookmarkBitmap?.recycle()
-        bookmarkBitmap = null
+        bookmarkBadge.recycle()
         canvas = null
     }
     //endregion
@@ -511,18 +505,6 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
         // 阅读方式回原位
         binding.appLlReadMethod.translationY = ScreenUtils.getScreenHeight().toFloat()
         binding.appLlMore.translationY = ScreenUtils.getScreenHeight().toFloat()
-    }
-
-    /**
-     * 获取阅读进度的百分比
-     */
-    private fun getPercent(percent: Int, total: Int): String { // 创建一个数值格式化对象
-        val numberFormat = NumberFormat.getInstance()
-        // 设置精确到小数点后2位
-        numberFormat.maximumFractionDigits = 1
-        //计算x年x月的成功率
-        val result = numberFormat.format(percent.toFloat() / total.toFloat() * 100f)
-        return "$result%"
     }
 
     private fun initScaleFactor() {
@@ -1001,14 +983,7 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
     }
 
     private fun drawBookmark(canvas: Canvas?, pageWidth: Float) {
-        val bitmap = bookmarkBitmap ?: return
-        if (bitmap.isRecycled) {
-            return
-        }
-        val curPageWidth = pageWidth * scaleFactor
-        val margin = (curPageWidth - pageWidth) / 3f
-        val left = pageWidth - ConvertUtils.dp2px(36f) - margin
-        canvas?.drawBitmap(bitmap, left, 0f, paint)
+        bookmarkBadge.draw(canvas, pageWidth, scaleFactor)
     }
 
     private fun showQuickbar() {

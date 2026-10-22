@@ -1,6 +1,6 @@
 @echo off
 cd /d f:\Projects\xPDF
-del build_check.bat build_check.log metrics.ps1 rm.bat >nul 2>&1
+del build_check.bat build_check.log metrics.ps1 >nul 2>&1
 git add -A
-git commit -q -m "refactor(kotlin): A+B+D 三批 Java 转 Kotlin，app 模块 Java 降至 15 个文件" -m "A 批（纯样板 199 行）：" -m "- 5 个事件转 data class（AllEvent/ImportEvent/MaxRecentEvent/RecentPDFEvent/LegacyMissingEvent），isEmpty->isEmpty 属性、isFromPreviewActivity 保持原访问形态" -m "- AppConfig 转 object（const val DB_NAME + val AUTHORITY）" -m "- EmptyHolder/HeaderHolder 转 Kotlin，字段加 @JvmField 兼容尚未转换的 Java Adapter" -m "- XGridDecoration/YGridDecoration 转 Kotlin，删掉永远为真的 pos%3 switch" -m "B 批（轻逻辑 410 行）：" -m "- UiManager/DialogUtils 转 object，Toast 与 BottomSheet 逻辑合并去重，findViewById 加空安全" -m "- GroupingAdapter 转 Kotlin：保留 spanSize 仅在空列表时改为 3 的行为，删掉未使用的两参构造" -m "- Bookmark 转 data class 并去掉无调用方的 Parcelable 实现（原本只经 Gson 存 JSON）" -m "- CollectionFragment 的 activity 改用 requireActivity()（DialogFragment 的 activity 可空）" -m "D 批（工具/入口 237 行）：" -m "- PdfUtils 转 object（@JvmStatic 保留原调用形态），fd/renderer/page 关闭逻辑收敛为 closeQuietly" -m "- App 转 Kotlin：companion @JvmStatic getContext()，MultiDex/DB 迁移/异步加载顺序保持不变" -m "度量：dex 类数 2772 -> 2780（+8，在预期 +5~10 内），APK 5.118MB -> 5.120MB" -m "保留 Java：greenDAO 生成物 7 + 实体 4 + 自定义 View 3 + DataManager 1"
+git commit -q -m "refactor(preview): 抽出书签角标渲染与进度持久化，PreviewActivity 去掉直连 DB" -m "- 新增 preview/BookmarkBadgeRenderer：位图解码一次、绘制只算坐标，recycle 由它自己负责" -m "- 新增 data/PreviewRepository：进度百分比/curPage/bookmark/scaleFactor 的写库与缓存刷新收敛到一处，后续换 suspend+IO 只改这里" -m "- PreviewActivity 删除 bookmarkBitmap/paint/getPercent 与 BitmapFactory/NumberFormat/Paint import" -m "- 度量：dex 类数 2780 -> 2781，APK 5.120MB -> 5.121MB"
 git log --oneline -1
