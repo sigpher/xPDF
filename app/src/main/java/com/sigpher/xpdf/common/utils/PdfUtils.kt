@@ -57,7 +57,8 @@ object PdfUtils {
             page = renderer.openPage(pageIndex)
             val width = Math.max(1, Math.min(THUMB_WIDTH, page.width))
             val height = Math.max(1, (width * (page.height * 1.0f / page.width)).toInt())
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
+            // PdfRenderer.Page.render 只支持 ARGB_8888，用 RGB_565 会抛 Unsupported pixel format
+            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             bitmap.eraseColor(Color.WHITE)
             page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
             bitmap
