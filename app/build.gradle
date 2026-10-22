@@ -1,22 +1,22 @@
 plugins {
+    // AGP 9 起内置 Kotlin 支持，无需再应用 org.jetbrains.kotlin.android
     id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
 }
 
 android {
     namespace 'com.sigpher.xpdf'
-    compileSdk 34
+    compileSdk 37
 
     resourcePrefix 'app'
 
     defaultConfig {
         applicationId "com.sigpher.xpdf"
-        minSdk 21
+        minSdk 24
         targetSdk 34
-        versionCode 6
-        versionName "0.4.0"
+        versionCode 7
+        versionName "0.5.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        // minSdk 21 起系统原生支持 multidex，无需再显式开启/引入 androidx.multidex
+        // minSdk 24 起系统原生支持 multidex，无需显式开启/引入 androidx.multidex
         // 只保留中英文资源，裁掉三方库带入的其他语言，缩小 resources.arsc
         // 注意：裁剪按 qualifier 精确匹配，只写 'zh' 匹配不到 values-zh-rCN 等目录，
         // 会把中文资源整包裁掉（APK 内只剩 en）。这里与 res/values-zh-* 目录一一对应。
@@ -80,10 +80,6 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = '17'
-    }
-
     lint {
         checkReleaseBuilds false
         abortOnError false
@@ -93,10 +89,28 @@ android {
 
     // AGP 8 起 packagingOptions 已废弃，统一改用 packaging
     packaging {
+        // AGP 9 默认把 .so 原样存入 APK（不压缩），下载包会变大；
+        // 这里保持与历史版本一致的行为：压缩后再由安装器解压。
+        jniLibs {
+            useLegacyPackaging true
+        }
         resources {
             excludes += ['META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/LICENSE.txt',
                          'META-INF/NOTICE', 'META-INF/NOTICE.txt', 'META-INF/AL2.0', 'META-INF/LGPL2.1']
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
+}
+
+// Gradle 守护进程在 JDK 17 上运行，这里用 toolchain 让 javac 使用 JDK 21+（读得懂 pdfium 绑定的 major 65 字节码）
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(27)
     }
 }
 

@@ -30,8 +30,8 @@ import com.sigpher.xpdf.settings.SettingsActivity.Companion.start
 import com.blankj.utilcode.util.*
 import com.github.barteksc.pdfviewer.PDFView
 import com.github.barteksc.pdfviewer.PDFView.Configurator
-import com.shockwave.pdfium.PdfDocument
-import com.shockwave.pdfium.PdfPasswordException
+import io.legere.pdfiumandroid.api.Bookmark as PdfBookmark
+import io.legere.pdfiumandroid.api.PdfPasswordException
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -155,7 +155,7 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
     private var contentFragInterface: IContentFragInterface? = null
     private var bkFragInterface: IBkFragInterface? = null
     private var hideBar = false
-    private val contentMap: MutableMap<Long, PdfDocument.Bookmark> = HashMap()
+    private val contentMap: MutableMap<Long, PdfBookmark> = HashMap()
     private val bookmarkMap: MutableMap<Long, Bookmark> = HashMap()
     private val pageList: MutableList<Long> = ArrayList()
 
@@ -1017,10 +1017,10 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
                 .start()
     }
 
-    private fun findContent(list: List<PdfDocument.Bookmark>) {
+    private fun findContent(list: List<PdfBookmark>) {
         for (bk in list) {
             contentMap[bk.pageIdx] = bk
-            if (bk.hasChildren()) {
+            if (bk.children.isNotEmpty()) {
                 findContent(bk.children)
             }
         }

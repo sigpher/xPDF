@@ -23,10 +23,13 @@ import android.util.SparseBooleanArray;
 import com.github.barteksc.pdfviewer.exception.PageRenderingException;
 import com.github.barteksc.pdfviewer.util.FitPolicy;
 import com.github.barteksc.pdfviewer.util.PageSizeCalculator;
-import com.shockwave.pdfium.PdfDocument;
-import com.shockwave.pdfium.PdfiumCore;
-import com.shockwave.pdfium.util.Size;
-import com.shockwave.pdfium.util.SizeF;
+import io.legere.pdfiumandroid.PdfDocument;
+import io.legere.pdfiumandroid.PdfiumCore;
+import io.legere.pdfiumandroid.api.Bookmark;
+import io.legere.pdfiumandroid.api.Link;
+import io.legere.pdfiumandroid.api.Meta;
+import io.legere.pdfiumandroid.api.Size;
+import com.github.barteksc.pdfviewer.util.SizeF;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -96,7 +99,10 @@ class PdfFile {
         }
 
         for (int i = 0; i < pagesCount; i++) {
-            Size pageSize = pdfiumCore.getPageSize(pdfDocument, documentPage(i));
+            // 新绑定库不再提供 getPageSize，改用页面宽高（单位：PDF point，与原实现一致）
+            int docPage = documentPage(i);
+            Size pageSize = new Size(pdfiumCore.getPageWidthPoint(pdfDocument, docPage),
+                    pdfiumCore.getPageHeightPoint(pdfDocument, docPage));
             if (pageSize.getWidth() > originalMaxWidthPageSize.getWidth()) {
                 originalMaxWidthPageSize = pageSize;
             }
@@ -296,21 +302,21 @@ class PdfFile {
                 bounds.left, bounds.top, bounds.width(), bounds.height(), annotationRendering);
     }
 
-    public PdfDocument.Meta getMetaData() {
+    public Meta getMetaData() {
         if (pdfDocument == null) {
             return null;
         }
         return pdfiumCore.getDocumentMeta(pdfDocument);
     }
 
-    public List<PdfDocument.Bookmark> getBookmarks() {
+    public List<Bookmark> getBookmarks() {
         if (pdfDocument == null) {
             return new ArrayList<>();
         }
         return pdfiumCore.getTableOfContents(pdfDocument);
     }
 
-    public List<PdfDocument.Link> getPageLinks(int pageIndex) {
+    public List<Link> getPageLinks(int pageIndex) {
         int docPage = documentPage(pageIndex);
         return pdfiumCore.getPageLinks(pdfDocument, docPage);
     }
@@ -318,7 +324,9 @@ class PdfFile {
     public RectF mapRectToDevice(int pageIndex, int startX, int startY, int sizeX, int sizeY,
                                  RectF rect) {
         int docPage = documentPage(pageIndex);
-        return pdfiumCore.mapRectToDevice(pdfDocument, docPage, startX, startY, sizeX, sizeY, 0, rect);
+        // 新绑定库返回整型 Rect，这里转回 RectF 以保持对外签名不变
+        Rect mapped = pdfiumCore.mapRectToDevice(pdfDocument, docPage, startX, startY, sizeX, sizeY, 0, rect);
+        return new RectF(mapped);
     }
 
     public void dispose() {

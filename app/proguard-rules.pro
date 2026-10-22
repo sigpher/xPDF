@@ -20,8 +20,8 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
-# AndroidPdfViewer（pdfium 原生绑定）
--keep class com.shockwave.**
+# AndroidPdfViewer（pdfium 原生绑定，io.legere:pdfiumandroid）
+-keep class io.legere.** { *; }
 
 # RealtimeBlurView（收藏夹重命名界面的模糊背景，内部依赖 RenderScript）
 -keep class androidx.renderscript.** { *; }

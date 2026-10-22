@@ -16,8 +16,9 @@ class CoverHolder(itemView: View) : BaseHolder(itemView) {
     override val checkBox: CheckBox
 
     companion object {
-        const val DEFAULT_LAYOUT = R.layout.app_recycler_item_cover
-        const val DEFAULT_LAYOUT_HORIZONTAL = R.layout.app_recycler_item_cover_horizontal
+        // AGP 9 默认 non-final 资源 ID，R.layout.* 不再是编译期常量
+        val DEFAULT_LAYOUT = R.layout.app_recycler_item_cover
+        val DEFAULT_LAYOUT_HORIZONTAL = R.layout.app_recycler_item_cover_horizontal
     }
 
     init {

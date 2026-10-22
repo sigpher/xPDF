@@ -28,8 +28,9 @@ class CollectionHolder(itemView: View) : BaseHolder(itemView) {
     }
 
     companion object {
-        const val DEFAULT_LAYOUT = R.layout.app_recycler_item_collection
-        const val DEFAULT_LAYOUT_HORIZONTAL = R.layout.app_recycler_item_collection_horizontal
+        // AGP 9 默认 non-final 资源 ID，R.layout.* 不再是编译期常量
+        val DEFAULT_LAYOUT = R.layout.app_recycler_item_collection
+        val DEFAULT_LAYOUT_HORIZONTAL = R.layout.app_recycler_item_collection_horizontal
     }
 
     init {

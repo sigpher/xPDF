@@ -9,7 +9,7 @@ import com.sigpher.xpdf.R
 import com.sigpher.xpdf.common.App
 import com.sigpher.xpdf.common.CommonFragment
 import com.sigpher.xpdf.preview.ContentHolder.IconTreeItem
-import com.shockwave.pdfium.PdfDocument
+import io.legere.pdfiumandroid.api.Bookmark as PdfBookmark
 import com.unnamed.b.atv.model.TreeNode
 import com.unnamed.b.atv.view.AndroidTreeView
 import java.util.*
@@ -20,13 +20,13 @@ import com.sigpher.xpdf.databinding.AppFragmentContentBinding
  */
 class ContentFragment : CommonFragment(), IContentFragInterface {
 
-    private val contentList: MutableList<PdfDocument.Bookmark> = ArrayList()
+    private val contentList: MutableList<PdfBookmark> = ArrayList()
 
     private var _binding: AppFragmentContentBinding? = null
 
     private val binding get() = _binding!!
 
-    override fun update(collection: MutableCollection<PdfDocument.Bookmark>) {
+    override fun update(collection: MutableCollection<PdfBookmark>) {
         contentList.clear()
         contentList.addAll(collection)
         // 视图尚未就绪时只缓存数据，等 onViewCreated 后再渲染
@@ -85,8 +85,9 @@ class ContentFragment : CommonFragment(), IContentFragInterface {
     /**
      * 递归构建单个书签节点，顶层与子节点共用同一套 ViewHolder 绑定逻辑
      */
-    private fun buildNode(bk: PdfDocument.Bookmark): TreeNode {
-        val icon = if (bk.hasChildren()) R.drawable.app_ic_can_down_white else R.drawable.app_ic_cannot_down_white
+    private fun buildNode(bk: PdfBookmark): TreeNode {
+        val hasChildren = bk.children.isNotEmpty()
+        val icon = if (hasChildren) R.drawable.app_ic_can_down_white else R.drawable.app_ic_cannot_down_white
         val holder = ContentHolder(activity)
         holder.setOnIconTapListener(object : ContentHolder.OnIconTapListener {
             override fun onIconTap(node: TreeNode) {
@@ -99,8 +100,8 @@ class ContentFragment : CommonFragment(), IContentFragInterface {
             }
         })
         val pageId = (bk.pageIdx + 1).toString()
-        val node = TreeNode(IconTreeItem(icon, bk.title, pageId)).setViewHolder(holder)
-        if (bk.hasChildren()) {
+        val node = TreeNode(IconTreeItem(icon, bk.title.orEmpty(), pageId)).setViewHolder(holder)
+        if (hasChildren) {
             for (child in bk.children) {
                 node.addChild(buildNode(child))
             }

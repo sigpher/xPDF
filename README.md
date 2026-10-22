@@ -4,8 +4,8 @@
 
 - 应用名：`xPDF`
 - 包名（applicationId）：`com.sigpher.xpdf`
-- 版本：`0.4.0`（versionCode `6`，本仓库首个公开发布版本为 `0.1.0`，版本线已重置，见「版本变更」）
-- 最低支持：Android 5.0（API 21），compileSdk / targetSdk 34
+- 版本：`0.5.0`（versionCode `7`，本仓库首个公开发布版本为 `0.1.0`，版本线已重置，见「版本变更」）
+- 最低支持：Android 7.0（API 24），compileSdk 37 / targetSdk 34
 - 产物：**release**（约 5.1 MB，仅 arm64-v8a）与 **debug** 两个变体（`app/build/outputs/apk/release/app-release.apk`）
 
 ## 功能特性
@@ -42,13 +42,13 @@
 
 | 项目 | 版本 |
 | --- | --- |
-| JDK | **17**（AGP 8 要求 JDK 17+，JDK 21/25 亦可） |
-| Gradle | 8.7（随 wrapper 提供） |
-| Android Gradle Plugin | 8.5.2 |
-| Kotlin | 1.9.24 |
-| compileSdkVersion / targetSdkVersion | 34 |
-| minSdkVersion | 21 |
-| Android SDK | Platform 34 + build-tools 34.0.0 |
+| JDK | **21+**（AGP 9 要求 JDK 17+，但 `io.legere:pdfiumandroid` 的 class 文件是 Java 21 字节码，编译端必须 JDK 21+） |
+| Gradle | 9.6.0（随 wrapper 提供） |
+| Android Gradle Plugin | 9.4.1 |
+| Kotlin | 2.4.10（AGP 9 内置 Kotlin 支持，无需再应用 `org.jetbrains.kotlin.android`） |
+| compileSdkVersion / targetSdkVersion | 37 / 34 |
+| minSdkVersion | 24 |
+| Android SDK | Platform 37 + build-tools 37.0.0 |
 
 ## 构建指南
 
@@ -92,13 +92,13 @@ gradlew.bat :app:assembleDebug
 
 > debug 变体 applicationId 为 `com.sigpher.xpdf.dev`，应用名 `xPDF Dev`，并接入 LeakCanary 2.14。
 >
-> 本机存在多个 JDK 时，建议显式覆盖：`gradlew.bat -Dorg.gradle.java.home="<JDK17 路径>" :app:assembleRelease`。
+> 本机存在多个 JDK 时，建议显式覆盖：`gradlew.bat -Dorg.gradle.java.home="<JDK21+ 路径>" :app:assembleRelease`。
 
 ### 4. 常见构建问题
 
-- **依赖拉取失败**：`pdfium-android`、`parallaxbacklayout`、`atv` 等老 AAR 只发布在已停服的 JCenter，工程通过 `https://maven.aliyun.com/repository/public` 镜像解析；若镜像不可用，可把对应 AAR 收进 `app/libs` 或本地 maven 仓库。
+- **依赖拉取失败**：`parallaxbacklayout`、`atv`、`BaseRecyclerViewAdapterHelper` 等老 AAR 只发布在已停服的 JCenter，工程通过 `https://maven.aliyun.com/repository/public` 镜像解析；若镜像不可用，可把对应 AAR 收进 `app/libs` 或本地 maven 仓库。PDF 引擎已换成 Maven Central 上的 `io.legere:pdfiumandroid:2.0.3`，不再需要 JCenter。
 - **基础库已内联**：原作者的基础库 `com.aaron:base` 只发布在已停服的 JCenter 上，工程此前依赖瘦身 fork `com.github.sigpher.Base:base:1.2.0`；现在已整体移除该 AAR，把 app 实际用到的部分下沉到本仓库——`common/utils` 下的 `StatusBarUtils` / `TextWatcherImpl` / `OnClickListenerImpl` 内联自该库（[sigpher/Base](https://github.com/sigpher/Base)，Apache-2.0），`base_*` 颜色与字号资源迁入 `res/values`，封面加载改为 Glide 直接调用。原先由它传递的 `glide:4.9.0` 与 `utilcodex:1.23.7` 已在 `app/build.gradle` 显式声明，构建时不再需要 JitPack 现场编译或 `publishToMavenLocal`。
-- **JDK 版本报错**：出现 `Unsupported class file major version` 或 `jlink` 报错时，确认 Gradle JDK 为 17（`~/.gradle/gradle.properties` 里的 `org.gradle.java.home` 优先级高于 `JAVA_HOME`）。
+- **JDK 版本报错**：出现 `Unsupported class file major version 65` 时说明 Gradle 跑在 JDK 17 上，需切到 JDK 21+（`~/.gradle/gradle.properties` 里的 `org.gradle.java.home` 优先级高于 `JAVA_HOME`）。
 - **签名文件不存在**：检查 `local.properties` 中 `STORE_FILE_NAME` 指向的文件是否在 `app/` 目录下（`file(...)` 以模块目录为基准解析）。
 
 ## 工程结构
@@ -132,11 +132,11 @@ xPDF/
 ## 技术实现要点
 
 - **架构**：MVP + Repository 雏形。`common/MVP.kt` 定义 `IView` / `IPresenter` 契约（Presenter 支持 `detach()`）；导入等耗时操作统一走 `data/ImportPipeline`（suspend + `Dispatchers.IO`）。
-- **语言**：业务代码已全面 Kotlin 化（事件、Holder、装饰器、UiManager、DialogUtils、GroupingAdapter、Bookmark、PdfUtils、App 等）；仍保留 Java 的只有三类——greenDAO 生成物（`DaoMaster`/`DaoSession`/`*Dao`/`MigrationHelper`/`UpdateOpenHelper`）、4 个 greenDAO 实体，以及 3 个自定义 View（`ImageTextView`/`BorderImageView`/`NewViewPager`）与待替换的 `DataManager`。
+- **语言**：业务代码已全面 Kotlin 化（事件、Holder、装饰器、UiManager、DialogUtils、GroupingAdapter、Bookmark、PdfUtils、App、实体类与自定义 View 等）；仍保留 Java 的只剩 greenDAO 生成物（`DaoMaster`/`DaoSession`/`*Dao`/`MigrationHelper`/`UpdateOpenHelper`），以及 `android-pdf-viewer` 模块（与上游同构，便于合并）。
 - **UI**：AppCompat + Material Components + `BaseRecyclerViewAdapterHelper`；视图绑定全部迁移到 **ViewBinding**（`kotlin-android-extensions` 已下线）；`ParallaxBackLayout` 提供侧滑返回；`RealtimeBlurView` 实现毛玻璃遮罩。
 - **数据层**：GreenDAO 3.3.0（DAO 作为源码维护，不再用 gradle 插件生成），`schemaVersion 3`；`DataManager` 维护书库内存缓存与「目录 → PDF」索引，启动时在 IO 线程异步加载。
 - **事件通信**：EventBus 3.3.1。
-- **PDF 渲染**：`android-pdf-viewer` 模块封装 PdfiumAndroid（`com.github.barteksc:pdfium-android:1.9.0`，排除其 support 传递依赖），在原生 `PDFView` 基础上增加了滚动监听、显示监听、页切换监听、快照处理等定制能力。
+- **PDF 渲染**：`android-pdf-viewer` 模块封装 PdfiumAndroidKt（`io.legere:pdfiumandroid:2.0.3`，持续维护、原生库随 NDK 构建），在原生 `PDFView` 基础上增加了滚动监听、显示监听、页切换监听、快照处理等定制能力。
 - **性能**：页面按需渲染 + 滚动节流、封面单次打开生成并压缩为 JPEG、书签角标位图复用、夜间模式免重载、最近阅读列表两次查询完成关联、LeakCanary 仅 debug 生效。
 
 ## 数据与存储
@@ -159,6 +159,25 @@ xPDF/
 > 3.0.0 起不再申请 `INTERNET` 等网络权限，应用完全离线运行；targetSdk 34 起也不再声明 `READ/WRITE_EXTERNAL_STORAGE`。
 
 ## 版本变更
+
+### 0.5.0（versionCode 7）
+
+PDF 引擎与构建工具链升级（含破坏性变更，升级前请阅读第一、二条）：
+
+- **最低系统要求提升到 Android 7.0（API 24）**：新的 pdfium 绑定库声明 `minSdk 24`，Android 5.0/5.1 设备无法再安装
+- **PDF 引擎替换**：`com.github.barteksc:pdfium-android:1.9.0`（2019 年构建、上游已归档）→ **`io.legere:pdfiumandroid:2.0.3`**（Maven Central，持续维护，原生库随 NDK 从源码构建）
+  - 原生库从 modpdfium + modft2 + modpng + libc++_shared + jniPdfium（≈6.9 MB）缩减为 libpdfium + libpdfiumandroid（≈5.06 MB）
+  - 接口迁移：`PdfiumCore(context)` → `PdfiumCore()`；`getPageSize` → `getPageWidthPoint` / `getPageHeightPoint`；`mapRectToDevice` 返回 `Rect` 并内部转 `RectF`；书签/链接/元数据类型迁到 `io.legere.pdfiumandroid.api`
+  - `PdfDocument.Bookmark` 的 `pageIdx` 由 `int` 变为 `long`，`hasChildren()` 改为判断 `children` 是否为空；app 内同名 `Bookmark` 实体通过 `import ... as PdfBookmark` 区分
+- **工具链**：Gradle 8.7 → **9.6.0**、AGP 8.5.2 → **9.4.1**、Kotlin 1.9.24 → **2.4.10**、compileSdk 34 → **37**
+  - AGP 9 内置 Kotlin 支持，移除 `org.jetbrains.kotlin.android` 插件；`kotlinOptions` 改为 `kotlin { compilerOptions { … } }`
+  - AGP 9 的优化资源裁剪要求非 final 资源 ID：开启 `android.nonFinalResIds=true`，并把 4 处 `const val R.layout.*` 改为 `val`
+  - `io.legere:pdfiumandroid` 的 class 文件是 Java 21 字节码，而 Gradle 9.6 不能在 JDK 27 上运行：最终采用 **Gradle 跑在 JDK 17 + Java toolchain 27 编译**
+  - `.so` 显式启用 `useLegacyPackaging`（AGP 9 默认不压缩，会让 APK 从 4.47 MB 涨到 6.96 MB）
+  - 移除已废弃的 `jcenter()` 仓库与 `task clean` 写法
+- 混淆规则：`-keep class com.shockwave.**` → `-keep class io.legere.**`
+- 关于页「开源组件」增加 PdfiumAndroidKt
+- 体积：APK 5,428,846 → **4,691,533 字节（4.47 MB）**
 
 ### 0.4.0（versionCode 6）
 
@@ -287,7 +306,8 @@ greenDAO 实体类 Kotlin 化，功能与界面无变化（建议覆盖安装后
 
 | 组件 | 作者 | 用途 |
 | --- | --- | --- |
-| AndroidPdfViewer / PdfiumAndroid | barteksc | PDF 渲染 |
+| AndroidPdfViewer / PdfiumAndroid | barteksc | PDF 渲染（视图层） |
+| PdfiumAndroidKt | legere / johngray1965 | PDF 渲染（pdfium 绑定，2.0.3） |
 | AndroidTreeView | bmelnychuk | 树形目录视图 |
 | RealtimeBlurView | mmin18 | 实时模糊遮罩 |
 | ParallaxBackLayout | anzewei | 侧滑返回 |

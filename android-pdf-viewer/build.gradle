@@ -1,14 +1,14 @@
 plugins {
+    // AGP 9 起内置 Kotlin 支持，无需再应用 org.jetbrains.kotlin.android
     id 'com.android.library'
-    id 'org.jetbrains.kotlin.android'
 }
 
 android {
     namespace 'com.github.barteksc.pdfviewer'
-    compileSdk 34
+    compileSdk 37
 
     defaultConfig {
-        minSdk 21
+        minSdk 24
         targetSdk 34
         versionCode 1
         versionName "3.2.0-beta.1"
@@ -19,17 +19,24 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = '17'
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
+}
+
+// Gradle 守护进程在 JDK 17 上运行，这里用 toolchain 让 javac 使用 JDK 21+（读得懂 pdfium 绑定的 major 65 字节码）
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(27)
     }
 }
 
 dependencies {
-    // pdfium 原生绑定（com.shockwave.pdfium）。JCenter 已停服，坐标由阿里云镜像兜底解析；
-    // 该库本身不引用 support 库，按其传递依赖显式排除，避免 support-v4 回流。
-    api('com.github.barteksc:pdfium-android:1.9.0') {
-        exclude group: 'com.android.support'
-    }
+    // pdfium 原生绑定：改用持续维护的 PdfiumAndroidKt（2.x 为 Kotlin 重写版，原生库随 NDK 构建）
+    api 'io.legere:pdfiumandroid:2.0.3'
     // 本模块不依赖 sigpher/Base，避免把图片加载等无关依赖带给使用方
     implementation 'androidx.core:core-ktx:1.13.1'
     // AboutUtils 使用了其中的 StringUtils / PathUtils

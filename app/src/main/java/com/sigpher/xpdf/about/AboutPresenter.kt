@@ -29,6 +29,7 @@ internal class AboutPresenter(view: IAboutView) : IAboutPresenter(view) {
                 "AndroidUtilCode",
                 "Material Components",
                 "AndroidPdfViewer / PdfiumAndroid",
+                "PdfiumAndroidKt",
                 "Base（内联工具类）")
         val LIBRARY_AUTHOR = arrayOf(
                 "bmelnychuk",
@@ -40,6 +41,7 @@ internal class AboutPresenter(view: IAboutView) : IAboutPresenter(view) {
                 "blankj",
                 "Google",
                 "barteksc",
+                "legere / johngray1965",
                 "AaronZheng / sigpher")
         val LIBRARY_INTRODUCE = arrayOf(
                 "AndroidTreeView. TreeView implementation for android",
@@ -51,6 +53,7 @@ internal class AboutPresenter(view: IAboutView) : IAboutPresenter(view) {
                 "Android developers' tool library, providing common utility classes",
                 "Modular and customizable Material Design UI components for Android",
                 "Android view for displaying PDFs rendered with PdfiumAndroid",
+                "Kotlin bindings for PDFium on Android, continuously maintained (2.0.3)",
                 "状态栏工具与 TextWatcher / 点击防抖基类，已内联进 app 源码（Apache-2.0）")
     }
 }

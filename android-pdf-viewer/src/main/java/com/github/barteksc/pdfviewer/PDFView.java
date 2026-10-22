@@ -66,10 +66,13 @@ import com.github.barteksc.pdfviewer.util.FitPolicy;
 import com.github.barteksc.pdfviewer.util.MathUtils;
 import com.github.barteksc.pdfviewer.util.SnapEdge;
 import com.github.barteksc.pdfviewer.util.Util;
-import com.shockwave.pdfium.PdfDocument;
-import com.shockwave.pdfium.PdfiumCore;
-import com.shockwave.pdfium.util.Size;
-import com.shockwave.pdfium.util.SizeF;
+import io.legere.pdfiumandroid.PdfDocument;
+import io.legere.pdfiumandroid.PdfiumCore;
+import io.legere.pdfiumandroid.api.Bookmark;
+import io.legere.pdfiumandroid.api.Link;
+import io.legere.pdfiumandroid.api.Meta;
+import io.legere.pdfiumandroid.api.Size;
+import com.github.barteksc.pdfviewer.util.SizeF;
 
 import java.io.File;
 import java.io.InputStream;
@@ -267,7 +270,7 @@ public class PDFView extends RelativeLayout {
         debugPaint = new Paint();
         debugPaint.setStyle(Style.STROKE);
 
-        pdfiumCore = new PdfiumCore(context);
+        pdfiumCore = new PdfiumCore();
         setWillNotDraw(false);
     }
 
@@ -1276,7 +1279,7 @@ public class PDFView extends RelativeLayout {
     }
 
     /** Returns null if document is not loaded */
-    public PdfDocument.Meta getDocumentMeta() {
+    public Meta getDocumentMeta() {
         if (pdfFile == null) {
             return null;
         }
@@ -1284,7 +1287,7 @@ public class PDFView extends RelativeLayout {
     }
 
     /** Will be empty until document is loaded */
-    public List<PdfDocument.Bookmark> getTableOfContents() {
+    public List<Bookmark> getTableOfContents() {
         if (pdfFile == null) {
             return Collections.emptyList();
         }
@@ -1292,7 +1295,7 @@ public class PDFView extends RelativeLayout {
     }
 
     /** Will be empty until document is loaded */
-    public List<PdfDocument.Link> getLinks(int page) {
+    public List<Link> getLinks(int page) {
         if (pdfFile == null) {
             return Collections.emptyList();
         }
