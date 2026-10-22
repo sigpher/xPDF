@@ -62,7 +62,7 @@ class CollectionFragment : DialogFragment(), IOperation, GroupingAdapter.Callbac
             deleteLocal?.isSelected = false
             cb?.isChecked = false
         }
-        DialogUtils.createBottomSheetDialog(activity, view)
+        DialogUtils.createBottomSheetDialog(requireActivity(), view)
     }
     private val regroupingDialog: BottomSheetDialog by lazy(LazyThreadSafetyMode.NONE) {
         DialogManager.createGroupingDialog(activity!!, true, this)
