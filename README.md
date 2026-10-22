@@ -4,7 +4,7 @@
 
 - 应用名：`xPDF`
 - 包名（applicationId）：`com.sigpher.xpdf`
-- 版本：`0.1.0`（versionCode `1`，本仓库首个公开发布版本，版本线已重置，见「版本变更」）
+- 版本：`0.1.1`（versionCode `2`，本仓库首个公开发布版本为 `0.1.0`，版本线已重置，见「版本变更」）
 - 最低支持：Android 5.0（API 21），compileSdk / targetSdk 34
 - 产物：**release**（约 5.1 MB，仅 arm64-v8a）与 **debug** 两个变体（`app/build/outputs/apk/release/app-release.apk`）
 
@@ -157,6 +157,15 @@ xPDF/
 > 3.0.0 起不再申请 `INTERNET` 等网络权限，应用完全离线运行；targetSdk 34 起也不再声明 `READ/WRITE_EXTERNAL_STORAGE`。
 
 ## 版本变更
+
+### 0.1.1（versionCode 2）
+
+依赖瘦身与构建简化，功能与界面无变化：
+
+- **移除 Base AAR**：不再依赖 `com.github.sigpher.Base:base:1.2.0`，把 app 实际用到的部分下沉到本仓库——`common/utils` 下的 `StatusBarUtils` / `TextWatcherImpl` / `OnClickListenerImpl` 内联自该库（Apache-2.0），`base_*` 颜色与字号迁入 `res/values`，构建不再需要 JitPack 或 `publishToMavenLocal`
+- **显式声明依赖**：原本由 Base 传递的 `glide:4.9.0`（runtime）与 `utilcodex:1.23.7` 改为在 `app/build.gradle` 直接声明；封面加载由 `ImageLoader` 封装改为 Glide 直接调用，显示行为不变（无占位图、无淡入、默认磁盘缓存）
+- **清理**：删除 `BookmarkFragment` 无用 import、混淆规则中 `RecentPDFEvent` 的 `-keep`（data class，无反射），补充 `-dontwarn com.bumptech.glide.**`
+- 体积：APK 5,369,260 → 5,368,344 字节；dex 类数 2566 → 2563
 
 ### 0.1.0（versionCode 1）
 
