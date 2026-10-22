@@ -152,16 +152,16 @@ object DataManager {
             val list = temp.subList(0, minOf(temp.size, 4))
             val coverPaths = ArrayList<String>(list.size)
             for (pdf in list) {
-                coverPaths.add(pdf.cover)
+                pdf.cover?.let { coverPaths.add(it) }
             }
-            coverList.add(Cover(c.name, coverPaths, temp.size))
+            coverList.add(Cover(c.name.orEmpty(), coverPaths, temp.size))
         }
     }
 
     private fun updatePathList() {
         pathList.clear()
         for (pdf in pdfList) {
-            pathList.add(pdf.path)
+            pdf.path?.let { pathList.add(it) }
         }
     }
 

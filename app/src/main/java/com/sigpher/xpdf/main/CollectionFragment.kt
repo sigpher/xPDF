@@ -430,8 +430,8 @@ class CollectionFragment : DialogFragment(), IOperation, GroupingAdapter.Callbac
                     ShortcutUtils.createPinnedShortcut(App.getContext(), Shortcut(
                             PreviewActivity::class.java,
                             it.id.toString(),
-                            it.name,
-                            it.name,
+                            it.name.orEmpty(),
+                            it.name.orEmpty(),
                             R.drawable.app_ic_shortcut_book,
                             PreviewActivity.EXTRA_PATH,
                             it.path

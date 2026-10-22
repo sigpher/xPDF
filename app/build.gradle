@@ -13,8 +13,8 @@ android {
         applicationId "com.sigpher.xpdf"
         minSdk 21
         targetSdk 34
-        versionCode 5
-        versionName "0.3.1"
+        versionCode 6
+        versionName "0.4.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         // minSdk 21 起系统原生支持 multidex，无需再显式开启/引入 androidx.multidex
         // 只保留中英文资源，裁掉三方库带入的其他语言，缩小 resources.arsc

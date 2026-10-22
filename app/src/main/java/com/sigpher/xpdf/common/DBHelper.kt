@@ -157,8 +157,10 @@ object DBHelper {
     fun deleteRecent(list: List<PDF>): List<String> {
         val dirList: MutableList<String> = ArrayList()
         for (pdf in list) {
-            dirList.add(pdf.name)
-            sDaoSession.database.execSQL("delete from RECENT_PDF where name = ?", arrayOf(pdf.name))
+            // 历史数据里 name 可能为空，用空串兜底以免调用方收到 null
+            val name = pdf.name.orEmpty()
+            dirList.add(name)
+            sDaoSession.database.execSQL("delete from RECENT_PDF where name = ?", arrayOf(name))
         }
         return dirList
     }
@@ -183,7 +185,7 @@ object DBHelper {
         val nameList: MutableList<String> = ArrayList()
         if (list != null) {
             for (pdf in list) {
-                nameList.add(pdf.name)
+                nameList.add(pdf.name.orEmpty())
                 sDaoSession.pdfDao.delete(pdf)
             }
         }

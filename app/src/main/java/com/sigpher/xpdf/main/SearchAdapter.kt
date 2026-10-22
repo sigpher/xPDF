@@ -33,7 +33,7 @@ internal class SearchAdapter(
     private val filterList: MutableList<PDF> = ArrayList()
 
     /** 关键字 + 反向过滤，与列表解耦，便于复用 */
-    private val keywordFilter = KeywordFilter(sourceList) { it.name }
+    private val keywordFilter = KeywordFilter(sourceList) { it.name.orEmpty() }
 
     init {
         keywordFilter.onFilter = { result ->

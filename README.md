@@ -4,7 +4,7 @@
 
 - 应用名：`xPDF`
 - 包名（applicationId）：`com.sigpher.xpdf`
-- 版本：`0.3.1`（versionCode `5`，本仓库首个公开发布版本为 `0.1.0`，版本线已重置，见「版本变更」）
+- 版本：`0.4.0`（versionCode `6`，本仓库首个公开发布版本为 `0.1.0`，版本线已重置，见「版本变更」）
 - 最低支持：Android 5.0（API 21），compileSdk / targetSdk 34
 - 产物：**release**（约 5.1 MB，仅 arm64-v8a）与 **debug** 两个变体（`app/build/outputs/apk/release/app-release.apk`）
 
@@ -159,6 +159,18 @@ xPDF/
 > 3.0.0 起不再申请 `INTERNET` 等网络权限，应用完全离线运行；targetSdk 34 起也不再声明 `READ/WRITE_EXTERNAL_STORAGE`。
 
 ## 版本变更
+
+### 0.4.0（versionCode 6）
+
+greenDAO 实体类 Kotlin 化，功能与界面无变化（建议覆盖安装后确认书库数据完整）：
+
+- **Kotlin 化 3 个实体**（336 行 Java → 238 行 Kotlin）：`bean/PDF`、`bean/Collection`、`bean/RecentPDF`
+- **可空性对齐存储层**：所有 `String` 属性声明为 `String?`——DAO 读取时会把 NULL 列原样回填（`entity.setCover(cursor.isNull(...) ? null : ...)`），若声明为非空，Kotlin setter 的入参校验会在读到历史脏数据时抛异常；`id` 保持 `Long?`（`insertOrReplace` 依赖 id 为 null 判断新增）
+- **三套构造器齐备**：无参（DAO / Gson 使用）、`@Generated` 全参（`PDFDao.readEntity` 等直接调用）、`Parcel`
+- **Parcelable 手写而非 `@Parcelize`**：读写顺序与 Java 版逐字一致，避免生成顺序变化导致升级后旧状态恢复错位；`CREATOR` 以 `@JvmField` 暴露
+- **混淆规则不变**：属性名即列名 / JSON 字段名；`-keepclassmembers class com.sigpher.xpdf.common.bean.** { <fields>; }` 继续保证 Gson 备份可跨版本读取
+- **仍保留 Java**：5 个 greenDAO 生成文件（`*Dao` / `DaoMaster` / `DaoSession`）、`MigrationHelper`、`UpdateOpenHelper`
+- 体积：APK 5,428,748 → 5,428,846 字节
 
 ### 0.3.1（versionCode 5）
 
