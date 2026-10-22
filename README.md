@@ -165,7 +165,9 @@ xPDF/
 - **移除 Base AAR**：不再依赖 `com.github.sigpher.Base:base:1.2.0`，把 app 实际用到的部分下沉到本仓库——`common/utils` 下的 `StatusBarUtils` / `TextWatcherImpl` / `OnClickListenerImpl` 内联自该库（Apache-2.0），`base_*` 颜色与字号迁入 `res/values`，构建不再需要 JitPack 或 `publishToMavenLocal`
 - **显式声明依赖**：原本由 Base 传递的 `glide:4.9.0`（runtime）与 `utilcodex:1.23.7` 改为在 `app/build.gradle` 直接声明；封面加载由 `ImageLoader` 封装改为 Glide 直接调用，显示行为不变（无占位图、无淡入、默认磁盘缓存）
 - **清理**：删除 `BookmarkFragment` 无用 import、混淆规则中 `RecentPDFEvent` 的 `-keep`（data class，无反射），补充 `-dontwarn com.bumptech.glide.**`
-- 体积：APK 5,369,260 → 5,368,344 字节；dex 类数 2566 → 2563
+- **修复启动崩溃（release 混淆）**：greenDAO 的 `DaoConfig` 用 `Class.forName(daoClass.getName() + "$Properties")` 反射取字段，而 R8 只保留了 `$Properties` 内部类原名、却把 DAO 类重命名为 `a.b`，运行时拼出的 `a.b$Properties` 不存在，抛 `DaoException: Could not init DAOConfig`；现用 `-keepnames` 固定 DAO 类名，并保留 `createTable` / `dropTable`（`MigrationHelper` 反射调用）
+- **修复空列表崩溃**：`BaseQuickAdapter.getEmptyView()` 返回的是内部 `FrameLayout` 容器，`BaseListAdapter` 曾把它当布局根直接 `bind`，空书库时抛 `ClassCastException: FrameLayout cannot be cast to RelativeLayout`；改为持有自己 inflate 的 binding
+- 体积：APK 5,369,260 → 5,367,869 字节；dex 类数 2566 → 2563
 
 ### 0.1.0（versionCode 1）
 

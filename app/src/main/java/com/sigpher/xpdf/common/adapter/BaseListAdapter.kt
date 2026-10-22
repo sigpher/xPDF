@@ -1,12 +1,12 @@
 package com.sigpher.xpdf.common.adapter
 
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.CheckBox
 import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.RecyclerView
 import com.chad.library.adapter.base.BaseItemDraggableAdapter
 import com.chad.library.adapter.base.BaseViewHolder
-import com.sigpher.xpdf.R
 import com.sigpher.xpdf.common.BaseHolder
 import com.sigpher.xpdf.databinding.AppRecyclerItemEmptyviewBinding
 
@@ -33,12 +33,19 @@ abstract class BaseListAdapter<T, K : BaseViewHolder>(
 
     private val checkArray: MutableMap<T, Boolean> = HashMap()
 
+    /** 空视图的 binding：BaseQuickAdapter.getEmptyView() 返回的是内部 FrameLayout 容器，不能直接 bind */
+    private var emptyBinding: AppRecyclerItemEmptyviewBinding? = null
+
     var isSelectMode = false
         protected set
 
     override fun bindToRecyclerView(recyclerView: RecyclerView?) {
         super.bindToRecyclerView(recyclerView)
-        setEmptyView(R.layout.app_recycler_item_emptyview)
+        recyclerView ?: return
+        val binding = AppRecyclerItemEmptyviewBinding.inflate(
+                LayoutInflater.from(recyclerView.context), recyclerView, false)
+        emptyBinding = binding
+        setEmptyView(binding.root)
     }
 
     override fun onBindViewHolder(holder: K, position: Int) {
@@ -46,9 +53,10 @@ abstract class BaseListAdapter<T, K : BaseViewHolder>(
         if (holder is BaseHolder) {
             handleCheckBox(holder, holder.checkBox, position)
         } else {
-            val emptyBinding = AppRecyclerItemEmptyviewBinding.bind(emptyView)
-            emptyBinding.appItvPlaceholder.text = emptyText
-            emptyBinding.appItvPlaceholder.setIconTop(emptyIcon)
+            emptyBinding?.let {
+                it.appItvPlaceholder.text = emptyText
+                it.appItvPlaceholder.setIconTop(emptyIcon)
+            }
         }
     }
 

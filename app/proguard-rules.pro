@@ -27,8 +27,15 @@
 -keep class androidx.renderscript.** { *; }
 
 # GreenDAO
+# DaoConfig 用 Class.forName(daoClass.getName() + "$Properties") 反射读取字段，DAO 类名
+# 必须保持原名；否则 DAO 被混淆成 a.b、而 $Properties 内部类因下面的 keep 保留原名，
+# 运行时拼出的 a.b$Properties 不存在，会抛 DaoException: Could not init DAOConfig。
+-keepnames class * extends org.greenrobot.greendao.AbstractDao
 -keepclassmembers class * extends org.greenrobot.greendao.AbstractDao {
-public static java.lang.String TABLENAME;
+    public static java.lang.String TABLENAME;
+    # MigrationHelper 通过 getDeclaredMethod("createTable"/"dropTable", Database.class, boolean.class) 反射调用
+    public static void createTable(org.greenrobot.greendao.database.Database, boolean);
+    public static void dropTable(org.greenrobot.greendao.database.Database, boolean);
 }
 -keep class **$Properties {*;}
 
