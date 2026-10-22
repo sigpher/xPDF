@@ -31,7 +31,7 @@ import com.sigpher.xpdf.common.bean.Backup
 import com.sigpher.xpdf.common.bean.Cover
 import com.sigpher.xpdf.common.event.ImportEvent
 import com.sigpher.xpdf.common.event.LegacyMissingEvent
-import com.sigpher.xpdf.common.utils.Base64
+import android.util.Base64
 import com.sigpher.xpdf.common.widgets.ImageTextView
 import com.sigpher.xpdf.settings.SettingsActivity
 import com.blankj.utilcode.constant.PermissionConstants
@@ -437,7 +437,8 @@ class MainActivity : CommonActivity(), IMainView {
                             val pdfList = DataManager.getPdfList(dirName)
                             val bean = Backup(dirName, pdfList)
                             val json = GsonUtils.toJson(bean)
-                            val state = FileIOUtils.writeFileFromBytesByChannel(File(BACKUP_PATH, "$dirName.txt"), Base64.getEncoder().encode(json.toByteArray()), true)
+                            val state = FileIOUtils.writeFileFromBytesByChannel(File(BACKUP_PATH, "$dirName.txt"),
+                                    Base64.encode(json.toByteArray(), Base64.NO_WRAP), true)
                             if (!state) failed++
                         }
                     }
@@ -471,7 +472,7 @@ class MainActivity : CommonActivity(), IMainView {
                                 failed++
                                 continue
                             }
-                            val bytes = Base64.getDecoder().decode(base64)
+                            val bytes = Base64.decode(base64, Base64.NO_WRAP)
                             val json = String(bytes)
                             val bean = GsonUtils.fromJson<Backup>(json, Backup::class.java)
                             if (bean == null) {
