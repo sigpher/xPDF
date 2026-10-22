@@ -24,6 +24,7 @@ object Settings {
     private const val SP_LINEAR_LAYOUT = "SP_LINEAR_LAYOUT"
     private const val SP_SCROLL_SHORTCUT = "SP_SCROLL_SHORTCUT"
     private const val SP_FIRST_CREATE_SHORTCUT = "SP_FIRST_CREATE_SHORTCUT"
+    private const val SP_TRANSLATE_TARGET = "SP_TRANSLATE_TARGET"
 
     @Volatile
     private var loaded = false
@@ -61,6 +62,10 @@ object Settings {
     @Volatile
     private var firstCreateShortcutValue = true
 
+    /** 翻译目标语言（BCP-47 语言标签，空串表示按界面语言自动选择） */
+    @Volatile
+    private var translateTargetValue = ""
+
     private fun ensureLoaded() {
         if (loaded) {
             return
@@ -80,6 +85,7 @@ object Settings {
             linearLayoutValue = SPStaticUtils.getBoolean(SP_LINEAR_LAYOUT, false)
             scrollShortCutValue = SPStaticUtils.getBoolean(SP_SCROLL_SHORTCUT, false)
             firstCreateShortcutValue = SPStaticUtils.getBoolean(SP_FIRST_CREATE_SHORTCUT, true)
+            translateTargetValue = SPStaticUtils.getString(SP_TRANSLATE_TARGET, "")
             loaded = true
         }
     }
@@ -206,5 +212,19 @@ object Settings {
             ensureLoaded()
             firstCreateShortcutValue = value
             SPStaticUtils.put(SP_FIRST_CREATE_SHORTCUT, value)
+        }
+
+    /**
+     * 翻译目标语言（BCP-47 标签，空串表示按界面语言自动选择）
+     */
+    var translateTarget: String
+        get() {
+            ensureLoaded()
+            return translateTargetValue
+        }
+        set(value) {
+            ensureLoaded()
+            translateTargetValue = value
+            SPStaticUtils.put(SP_TRANSLATE_TARGET, value)
         }
 }

@@ -105,4 +105,35 @@
         <item>不限</item>
     </string-array>
 
+    <!-- 文本选区 / 标注 / 翻译 -->
+    <string name="app_copy">复制</string>
+    <string name="app_highlight">高亮</string>
+    <string name="app_underline">下划线</string>
+    <string name="app_underline_added">已添加下划线</string>
+    <string name="app_note">笔记</string>
+    <string name="app_translate">翻译</string>
+    <string name="app_save">保存</string>
+    <string name="app_retry">重试</string>
+    <string name="app_copy_translation">复制</string>
+    <string name="app_copy_success">已复制</string>
+    <string name="app_copy_empty">没有可复制的内容</string>
+    <string name="app_note_hint">写点什么…</string>
+    <string name="app_page_has_no_text">该页无可提取文本</string>
+    <string name="app_highlight_added">已高亮</string>
+    <string name="app_annotation_deleted">标注已删除</string>
+    <string name="app_note_dialog_title">笔记</string>
+    <string name="app_note_dialog_title_existing">编辑标注</string>
+    <string name="app_translate_identifying">正在识别语种…</string>
+    <string name="app_translate_downloading">正在下载翻译模型…</string>
+    <string name="app_translate_translating">正在翻译…</string>
+    <string name="app_translate_failed">翻译失败，请检查网络后重试</string>
+    <string name="app_translate_no_language">未识别出源语言</string>
+    <string name="app_translate_same_language">原文已是目标语言</string>
+    <string name="app_translate_direction">%1$s → %2$s</string>
+    <string name="app_translate_external">其他应用</string>
+    <string name="app_language_chinese">中文</string>
+    <string name="app_language_english">英文</string>
+    <string name="app_language_japanese">日文</string>
+    <string name="app_language_korean">韩文</string>
+
 </resources>

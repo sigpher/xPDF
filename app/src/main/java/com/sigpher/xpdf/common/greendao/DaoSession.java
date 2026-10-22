@@ -8,10 +8,12 @@ import org.greenrobot.greendao.database.Database;
 import org.greenrobot.greendao.identityscope.IdentityScopeType;
 import org.greenrobot.greendao.internal.DaoConfig;
 
+import com.sigpher.xpdf.common.bean.Annotation;
 import com.sigpher.xpdf.common.bean.Collection;
 import com.sigpher.xpdf.common.bean.PDF;
 import com.sigpher.xpdf.common.bean.RecentPDF;
 
+import com.sigpher.xpdf.common.greendao.AnnotationDao;
 import com.sigpher.xpdf.common.greendao.CollectionDao;
 import com.sigpher.xpdf.common.greendao.PDFDao;
 import com.sigpher.xpdf.common.greendao.RecentPDFDao;
@@ -25,10 +27,12 @@ import com.sigpher.xpdf.common.greendao.RecentPDFDao;
  */
 public class DaoSession extends AbstractDaoSession {
 
+    private final DaoConfig annotationDaoConfig;
     private final DaoConfig collectionDaoConfig;
     private final DaoConfig pDFDaoConfig;
     private final DaoConfig recentPDFDaoConfig;
 
+    private final AnnotationDao annotationDao;
     private final CollectionDao collectionDao;
     private final PDFDao pDFDao;
     private final RecentPDFDao recentPDFDao;
@@ -36,6 +40,9 @@ public class DaoSession extends AbstractDaoSession {
     public DaoSession(Database db, IdentityScopeType type, Map<Class<? extends AbstractDao<?, ?>>, DaoConfig>
             daoConfigMap) {
         super(db);
+
+        annotationDaoConfig = daoConfigMap.get(AnnotationDao.class).clone();
+        annotationDaoConfig.initIdentityScope(type);
 
         collectionDaoConfig = daoConfigMap.get(CollectionDao.class).clone();
         collectionDaoConfig.initIdentityScope(type);
@@ -46,19 +53,26 @@ public class DaoSession extends AbstractDaoSession {
         recentPDFDaoConfig = daoConfigMap.get(RecentPDFDao.class).clone();
         recentPDFDaoConfig.initIdentityScope(type);
 
+        annotationDao = new AnnotationDao(annotationDaoConfig, this);
         collectionDao = new CollectionDao(collectionDaoConfig, this);
         pDFDao = new PDFDao(pDFDaoConfig, this);
         recentPDFDao = new RecentPDFDao(recentPDFDaoConfig, this);
 
+        registerDao(Annotation.class, annotationDao);
         registerDao(Collection.class, collectionDao);
         registerDao(PDF.class, pDFDao);
         registerDao(RecentPDF.class, recentPDFDao);
     }
     
     public void clear() {
+        annotationDaoConfig.clearIdentityScope();
         collectionDaoConfig.clearIdentityScope();
         pDFDaoConfig.clearIdentityScope();
         recentPDFDaoConfig.clearIdentityScope();
+    }
+
+    public AnnotationDao getAnnotationDao() {
+        return annotationDao;
     }
 
     public CollectionDao getCollectionDao() {

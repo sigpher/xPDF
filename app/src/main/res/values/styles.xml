@@ -116,4 +116,18 @@
         <item name="android:background">@drawable/app_shape_bg_scale_view_black</item>
     </style>
 
+    <!-- 长按选区的浮动操作栏按钮 -->
+    <style name="AppSelectionMenuItem" parent="Widget.AppCompat.TextView">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">@dimen/base_text_small</item>
+        <item name="android:textColor">@color/base_white</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
 </resources>

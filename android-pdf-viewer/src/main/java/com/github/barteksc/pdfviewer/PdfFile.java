@@ -321,6 +321,29 @@ class PdfFile {
         return pdfiumCore.getPageLinks(pdfDocument, docPage);
     }
 
+    /** 供 TextPageLoader 使用的文档句柄；文档已被 dispose 时返回 null */
+    PdfDocument getDocument() {
+        return pdfDocument;
+    }
+
+    /** 页面宽度（PDF point，未缩放、未适配视图） */
+    public int getPagePointWidth(int pageIndex) {
+        int docPage = documentPage(pageIndex);
+        if (docPage < 0 || pdfDocument == null) {
+            return 0;
+        }
+        return pdfiumCore.getPageWidthPoint(pdfDocument, docPage);
+    }
+
+    /** 页面高度（PDF point，未缩放、未适配视图） */
+    public int getPagePointHeight(int pageIndex) {
+        int docPage = documentPage(pageIndex);
+        if (docPage < 0 || pdfDocument == null) {
+            return 0;
+        }
+        return pdfiumCore.getPageHeightPoint(pdfDocument, docPage);
+    }
+
     public RectF mapRectToDevice(int pageIndex, int startX, int startY, int sizeX, int sizeY,
                                  RectF rect) {
         int docPage = documentPage(pageIndex);

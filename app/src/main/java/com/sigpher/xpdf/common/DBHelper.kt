@@ -1,6 +1,7 @@
 package com.sigpher.xpdf.common
 
 import android.content.Context
+import com.sigpher.xpdf.common.bean.Annotation
 import com.sigpher.xpdf.common.bean.Collection
 import com.sigpher.xpdf.common.bean.Cover
 import com.sigpher.xpdf.common.bean.PDF
@@ -8,6 +9,7 @@ import com.sigpher.xpdf.common.bean.RecentPDF
 import com.sigpher.xpdf.common.event.ImportEvent
 import com.sigpher.xpdf.common.greendao.*
 import com.sigpher.xpdf.common.utils.PdfUtils
+import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.PathUtils
 import com.blankj.utilcode.util.StringUtils
 import org.greenrobot.eventbus.EventBus
@@ -35,18 +37,37 @@ object DBHelper {
         sDaoSession = daoMaster.newSession()
     }
 
+    /**
+     * 历史数据修正：补齐 position 并重置 scaleFactor。
+     *
+     * 只在 [App] 检测到历史数据版本落后时执行一次，因此必须尽量快：
+     * 整体放在一个事务里，并按分组批量 updateInTx，避免逐条写入（几千本书会耗时数秒）。
+     */
     fun migrate() {
-        val collections = queryAllCollection()
-        for (item in collections) {
-            item.position = collections.indexOf(item)
-            updateCollection(item)
-            val pdfs = queryPDF(item.name)
-            for (pdf in pdfs) {
-                pdf.position = pdfs.indexOf(pdf)
-                pdf.scaleFactor = 1.0f
-                updatePDF(pdf)
+        val database = sDaoSession.database
+        val start = System.currentTimeMillis()
+        database.beginTransaction()
+        try {
+            val collections = queryAllCollection()
+            collections.forEachIndexed { index, item -> item.position = index }
+            if (collections.isNotEmpty()) {
+                sDaoSession.collectionDao.updateInTx(collections)
             }
+            for (item in collections) {
+                val pdfs = queryPDF(item.name)
+                pdfs.forEachIndexed { index, pdf ->
+                    pdf.position = index
+                    pdf.scaleFactor = 1.0f
+                }
+                if (pdfs.isNotEmpty()) {
+                    sDaoSession.pdfDao.updateInTx(pdfs)
+                }
+            }
+            database.setTransactionSuccessful()
+        } finally {
+            database.endTransaction()
         }
+        LogUtils.i("legacy data migrate cost ${System.currentTimeMillis() - start}ms")
     }
 
     fun updateDirName(oldDirName: String, newDirName: String): Boolean {
@@ -175,6 +196,10 @@ object DBHelper {
         for (c in list) {
             dirList.add(c.name)
             sDaoSession.database.execSQL("delete from Collection where name = ?", arrayOf(c.name))
+            // 先级联删除该分组下文档的标注，再删除文档本身
+            sDaoSession.database.execSQL(
+                    "delete from ANNOTATION where PDF_ID in (select _id from PDF where dir = ?)",
+                    arrayOf(c.name))
             sDaoSession.database.execSQL("delete from PDF where dir = ?", arrayOf(c.name))
             sDaoSession.database.execSQL("delete from RECENT_PDF where dir = ?", arrayOf(c.name))
         }
@@ -187,10 +212,41 @@ object DBHelper {
             for (pdf in list) {
                 nameList.add(pdf.name.orEmpty())
                 sDaoSession.pdfDao.delete(pdf)
+                // 级联清理该文档的标注
+                pdf.id?.let { deleteAnnotationsByPdf(it) }
             }
         }
         return nameList
     }
+
+    //region 标注
+
+    /** 查询某个文档的全部标注（按页、起始索引排序） */
+    @JvmStatic
+    fun queryAnnotations(pdfId: Long): List<Annotation> {
+        return sDaoSession.annotationDao.queryBuilder()
+                .where(AnnotationDao.Properties.PdfId.eq(pdfId))
+                .orderAsc(AnnotationDao.Properties.Page, AnnotationDao.Properties.StartIndex)
+                .list()
+    }
+
+    /** 插入或更新标注，返回行 ID */
+    @JvmStatic
+    fun saveAnnotation(annotation: Annotation): Long {
+        return sDaoSession.annotationDao.insertOrReplace(annotation)
+    }
+
+    @JvmStatic
+    fun deleteAnnotation(annotation: Annotation) {
+        sDaoSession.annotationDao.delete(annotation)
+    }
+
+    @JvmStatic
+    fun deleteAnnotationsByPdf(pdfId: Long) {
+        sDaoSession.database.execSQL("delete from ANNOTATION where PDF_ID = ?", arrayOf<Any>(pdfId))
+    }
+
+    //endregion
 
     fun insert(pathList: List<String>?): Boolean {
         if (pathList == null || pathList.isEmpty()) {

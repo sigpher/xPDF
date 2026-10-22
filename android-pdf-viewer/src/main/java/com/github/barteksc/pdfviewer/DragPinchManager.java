@@ -228,6 +228,10 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
 
     @Override
     public void onLongPress(MotionEvent e) {
+        // 文本取词优先：命中文本时不再回调既有的 OnLongPressListener
+        if (pdfView.onTextLongPress(e.getX(), e.getY())) {
+            return;
+        }
         pdfView.callbacks.callOnLongPress(e);
     }
 
@@ -321,6 +325,11 @@ class DragPinchManager implements GestureDetector.OnGestureListener, GestureDete
     public boolean onTouch(View v, MotionEvent event) {
         if (!enabled) {
             return false;
+        }
+
+        // 选区激活时优先消费手势（拖动首尾手柄、点空白退出），避免误触滚动/翻页
+        if (pdfView.handleTextSelectionTouch(event)) {
+            return true;
         }
 
         boolean retVal = scaleGestureDetector.onTouchEvent(event);

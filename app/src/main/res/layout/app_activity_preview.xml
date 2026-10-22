@@ -422,4 +422,22 @@
 
     </LinearLayout>
 
+    <!-- 长按选区的浮动操作栏（位置在代码中按选区锚点计算） -->
+    <include
+        android:id="@+id/app_include_selection_menu"
+        layout="@layout/app_view_selection_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <!-- 选中文本的译文卡片 -->
+    <include
+        android:id="@+id/app_include_translate_card"
+        layout="@layout/app_view_translate_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp" />
+
 </RelativeLayout>

@@ -34,6 +34,7 @@ import android.os.Build;
 import android.os.HandlerThread;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.widget.RelativeLayout;
 
 import androidx.lifecycle.MutableLiveData;
@@ -48,11 +49,15 @@ import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener;
 import com.github.barteksc.pdfviewer.listener.OnLongPressListener;
 import com.github.barteksc.pdfviewer.listener.OnPageChangeListener;
 import com.github.barteksc.pdfviewer.listener.OnPageErrorListener;
+import com.github.barteksc.pdfviewer.listener.OnPageOverlayListener;
 import com.github.barteksc.pdfviewer.listener.OnPageScrollListener;
 import com.github.barteksc.pdfviewer.listener.OnRenderListener;
 import com.github.barteksc.pdfviewer.listener.OnScrollListener;
 import com.github.barteksc.pdfviewer.listener.OnShowListener;
 import com.github.barteksc.pdfviewer.listener.OnTapListener;
+import com.github.barteksc.pdfviewer.listener.OnTextSelectedListener;
+import com.github.barteksc.pdfviewer.text.TextSelection;
+import com.github.barteksc.pdfviewer.text.TextSelectionManager;
 import com.github.barteksc.pdfviewer.model.PagePart;
 import com.github.barteksc.pdfviewer.scroll.ScrollHandle;
 import com.github.barteksc.pdfviewer.source.AssetSource;
@@ -132,6 +137,9 @@ public class PDFView extends RelativeLayout {
     private DragPinchManager dragPinchManager;
 
     PdfFile pdfFile;
+
+    /** 文本选区状态机，默认关闭，需要调用 {@link #setTextSelectable(boolean)} 开启 */
+    private TextSelectionManager textSelectionManager;
 
     /** The index of the current sequence */
     private int currentPage;
@@ -271,6 +279,7 @@ public class PDFView extends RelativeLayout {
         debugPaint.setStyle(Style.STROKE);
 
         pdfiumCore = new PdfiumCore();
+        textSelectionManager = new TextSelectionManager(this);
         setWillNotDraw(false);
     }
 
@@ -441,6 +450,11 @@ public class PDFView extends RelativeLayout {
 
         if (scrollHandle != null && isScrollHandleInit) {
             scrollHandle.destroyLayout();
+        }
+
+        // 先释放文本页句柄，再关闭文档，避免 native 句柄悬空
+        if (textSelectionManager != null) {
+            textSelectionManager.onDocumentClosed();
         }
 
         if (pdfFile != null) {
@@ -645,13 +659,36 @@ public class PDFView extends RelativeLayout {
 
         for (Integer page : onDrawPagesNums) {
             drawWithListener(canvas, page, callbacks.getOnDrawAll());
+            // 页面级叠加层（标注等）：canvas 原点平移到页面左上角，两种翻页模式通用
+            drawPageOverlay(canvas, page);
         }
         onDrawPagesNums.clear();
 
         drawWithListener(canvas, currentPage, callbacks.getOnDraw());
 
+        // 文本选区与手柄绘制在页面位图之上、浮层控件之下
+        if (textSelectionManager != null) {
+            textSelectionManager.draw(canvas);
+        }
+
         // Restores the canvas position
         canvas.translate(-currentXOffset, -currentYOffset);
+    }
+
+    /** 以页面左上角为原点回调页面级叠加绘制 */
+    private void drawPageOverlay(Canvas canvas, int page) {
+        OnPageOverlayListener overlayListener = callbacks.getOnPageOverlay();
+        if (overlayListener == null) {
+            return;
+        }
+        RectF bounds = getPageBounds(page);
+        if (bounds == null) {
+            return;
+        }
+        canvas.save();
+        canvas.translate(bounds.left, bounds.top);
+        overlayListener.onPageOverlay(canvas, bounds.width(), bounds.height(), page);
+        canvas.restore();
     }
 
     private void drawWithListener(Canvas canvas, int page, OnDrawListener listener) {
@@ -763,6 +800,9 @@ public class PDFView extends RelativeLayout {
         state = State.LOADED;
 
         this.pdfFile = pdfFile;
+        if (textSelectionManager != null) {
+            textSelectionManager.setLoader(new TextPageLoader(pdfFile));
+        }
 
         if (!renderingHandlerThread.isAlive()) {
             renderingHandlerThread.start();
@@ -1096,6 +1136,145 @@ public class PDFView extends RelativeLayout {
         return pdfFile.getPageSize(pageIndex);
     }
 
+    //region 文本选区
+
+    /**
+     * 开启/关闭文本选区。关闭时会立即清除当前选区。
+     */
+    public void setTextSelectable(boolean selectable) {
+        if (textSelectionManager != null) {
+            textSelectionManager.setEnabled(selectable);
+        }
+    }
+
+    public boolean isTextSelectable() {
+        return textSelectionManager != null && textSelectionManager.isEnabled();
+    }
+
+    public boolean isTextSelectionActive() {
+        return textSelectionManager != null && textSelectionManager.isActive();
+    }
+
+    /** 当前选区，无选区时返回 null */
+    public TextSelection getTextSelection() {
+        return textSelectionManager == null ? null : textSelectionManager.getSelection();
+    }
+
+    public void clearTextSelection() {
+        if (textSelectionManager != null) {
+            textSelectionManager.clearSelection();
+        }
+    }
+
+    public void setOnTextSelectedListener(OnTextSelectedListener listener) {
+        if (textSelectionManager != null) {
+            textSelectionManager.setListener(listener);
+        }
+    }
+
+    /** 页面级叠加绘制回调（标注），canvas 原点为页面左上角 */
+    public void setOnPageOverlayListener(OnPageOverlayListener listener) {
+        callbacks.setOnPageOverlay(listener);
+    }
+
+    /** 由 DragPinchManager 分发触摸事件时调用，返回 true 表示已被选区消费 */
+    boolean handleTextSelectionTouch(MotionEvent event) {
+        return textSelectionManager != null && textSelectionManager.onTouchEvent(event);
+    }
+
+    /** 由 DragPinchManager 长按回调调用，返回 true 表示已处理（不再回调 OnLongPressListener） */
+    boolean onTextLongPress(float x, float y) {
+        return textSelectionManager != null && textSelectionManager.onLongPress(x, y);
+    }
+
+    //endregion
+
+    //region 坐标换算
+
+    /**
+     * 屏幕上 (x, y)（View 坐标）所在的用户页码；越界或文档未加载返回 -1。
+     */
+    public int getPageAt(float x, float y) {
+        if (pdfFile == null || recycled || state != State.SHOWN) {
+            return -1;
+        }
+        float docX = -currentXOffset + x;
+        float docY = -currentYOffset + y;
+        int page = pdfFile.getPageAtOffset(swipeVertical ? docY : docX, zoom);
+        if (page < 0 || page >= pdfFile.getPagesCount()) {
+            return -1;
+        }
+        return page;
+    }
+
+    /**
+     * 页面在当前缩放下的位置（文档坐标，即 canvas 平移 currentOffset 之后的坐标系）。
+     */
+    public RectF getPageBounds(int page) {
+        if (pdfFile == null || page < 0 || page >= pdfFile.getPagesCount()) {
+            return null;
+        }
+        SizeF size = pdfFile.getScaledPageSize(page, zoom);
+        float secondary = pdfFile.getSecondaryPageOffset(page, zoom);
+        float primary = pdfFile.getPageOffset(page, zoom);
+        if (swipeVertical) {
+            return new RectF(secondary, primary, secondary + size.getWidth(), primary + size.getHeight());
+        }
+        return new RectF(primary, secondary, primary + size.getWidth(), secondary + size.getHeight());
+    }
+
+    /** 页面宽度（PDF point，与缩放无关） */
+    public int getPagePointWidth(int page) {
+        return pdfFile == null ? 0 : pdfFile.getPagePointWidth(page);
+    }
+
+    /** 页面高度（PDF point，与缩放无关） */
+    public int getPagePointHeight(int page) {
+        return pdfFile == null ? 0 : pdfFile.getPagePointHeight(page);
+    }
+
+    /**
+     * View 坐标 → 页面 point 坐标（与渲染使用的等比缩放一致，不做旋转处理）。
+     */
+    public PointF viewToPagePoint(int page, float viewX, float viewY) {
+        RectF bounds = getPageBounds(page);
+        int pointWidth = getPagePointWidth(page);
+        int pointHeight = getPagePointHeight(page);
+        if (bounds == null || pointWidth <= 0 || pointHeight <= 0
+                || bounds.width() <= 0f || bounds.height() <= 0f) {
+            return null;
+        }
+        float docX = -currentXOffset + viewX;
+        float docY = -currentYOffset + viewY;
+        float x = (docX - bounds.left) * pointWidth / bounds.width();
+        float y = (docY - bounds.top) * pointHeight / bounds.height();
+        return new PointF(x, y);
+    }
+
+    /**
+     * 页面 point 矩形 → View 坐标矩形。
+     */
+    public RectF pageRectToView(int page, RectF pageRect) {
+        if (pageRect == null) {
+            return null;
+        }
+        RectF bounds = getPageBounds(page);
+        int pointWidth = getPagePointWidth(page);
+        int pointHeight = getPagePointHeight(page);
+        if (bounds == null || pointWidth <= 0 || pointHeight <= 0) {
+            return null;
+        }
+        float scaleX = bounds.width() / pointWidth;
+        float scaleY = bounds.height() / pointHeight;
+        float left = bounds.left + pageRect.left * scaleX + currentXOffset;
+        float top = bounds.top + pageRect.top * scaleY + currentYOffset;
+        float right = bounds.left + pageRect.right * scaleX + currentXOffset;
+        float bottom = bounds.top + pageRect.bottom * scaleY + currentYOffset;
+        return new RectF(left, top, right, bottom);
+    }
+
+    //endregion
+
     public int getCurrentPage() {
         return currentPage;
     }
@@ -1368,6 +1547,12 @@ public class PDFView extends RelativeLayout {
 
         private OnPageErrorListener onPageErrorListener;
 
+        private OnPageOverlayListener onPageOverlayListener;
+
+        private OnTextSelectedListener onTextSelectedListener;
+
+        private boolean textSelectable = false;
+
         private LinkHandler linkHandler = new DefaultLinkHandler(PDFView.this);
 
         private int defaultPage = 0;
@@ -1485,6 +1670,23 @@ public class PDFView extends RelativeLayout {
             return this;
         }
 
+        /** 页面级叠加绘制（标注），canvas 原点为页面左上角 */
+        public Configurator onPageOverlay(OnPageOverlayListener onPageOverlayListener) {
+            this.onPageOverlayListener = onPageOverlayListener;
+            return this;
+        }
+
+        /** 是否允许长按取词，默认关闭 */
+        public Configurator textSelectable(boolean textSelectable) {
+            this.textSelectable = textSelectable;
+            return this;
+        }
+
+        public Configurator onTextSelected(OnTextSelectedListener onTextSelectedListener) {
+            this.onTextSelectedListener = onTextSelectedListener;
+            return this;
+        }
+
         public Configurator defaultPage(int defaultPage) {
             this.defaultPage = defaultPage;
             return this;
@@ -1569,6 +1771,9 @@ public class PDFView extends RelativeLayout {
             PDFView.this.callbacks.setOnLongPress(onLongPressListener);
             PDFView.this.callbacks.setOnPageError(onPageErrorListener);
             PDFView.this.callbacks.setLinkHandler(linkHandler);
+            PDFView.this.callbacks.setOnPageOverlay(onPageOverlayListener);
+            PDFView.this.setOnTextSelectedListener(onTextSelectedListener);
+            PDFView.this.setTextSelectable(textSelectable);
             PDFView.this.setSwipeEnabled(enableSwipe);
             PDFView.this.setNightMode(nightMode);
             PDFView.this.enableDoubletap(enableDoubletap);

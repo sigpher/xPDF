@@ -194,6 +194,17 @@ public class Callbacks {
         this.linkHandler = linkHandler;
     }
 
+    /** 页面级叠加绘制（canvas 原点已平移到页面左上角） */
+    private OnPageOverlayListener onPageOverlayListener;
+
+    public void setOnPageOverlay(OnPageOverlayListener onPageOverlayListener) {
+        this.onPageOverlayListener = onPageOverlayListener;
+    }
+
+    public OnPageOverlayListener getOnPageOverlay() {
+        return onPageOverlayListener;
+    }
+
     public void callLinkHandler(LinkTapEvent event) {
         if (linkHandler != null) {
             linkHandler.handleLinkEvent(event);

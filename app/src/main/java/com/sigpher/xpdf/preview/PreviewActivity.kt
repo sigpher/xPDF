@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.RectF
 import android.net.Uri
 import android.os.Bundle
 import android.view.*
@@ -30,6 +31,9 @@ import com.sigpher.xpdf.settings.SettingsActivity.Companion.start
 import com.blankj.utilcode.util.*
 import com.github.barteksc.pdfviewer.PDFView
 import com.github.barteksc.pdfviewer.PDFView.Configurator
+import com.github.barteksc.pdfviewer.listener.OnTextSelectedListener
+import com.github.barteksc.pdfviewer.text.TextSelection
+import com.sigpher.xpdf.common.bean.Annotation
 import io.legere.pdfiumandroid.api.Bookmark as PdfBookmark
 import io.legere.pdfiumandroid.api.PdfPasswordException
 import org.greenrobot.eventbus.EventBus
@@ -166,12 +170,40 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
     private var pageWidth = 0F
     private var docLoaded = false // 文档是否已加载完成，用于区分"首次加载"和"运行中切换"
     private lateinit var bookmarkBadge: BookmarkBadgeRenderer // 书签角标，位图解码一次复用
+
+    //region 文本选区 / 标注 / 翻译
+    private var pdfId = 0L // 当前文档在数据库中的 ID，标注按此关联
+    private val annotationsByPage: MutableMap<Int, MutableList<Annotation>> = HashMap()
+    private lateinit var overlayRenderer: AnnotationOverlayRenderer
+    private lateinit var translateController: TranslateController
+    private lateinit var selectionController: TextSelectionController
+
+    private val textSelectionListener = object : OnTextSelectedListener {
+        override fun onTextSelected(selection: TextSelection, anchorInView: RectF) {
+            selectionController.onTextSelected(selection, anchorInView)
+        }
+
+        override fun onTextSelectionChanged(selection: TextSelection, anchorInView: RectF) {
+            selectionController.onTextSelectionChanged(selection, anchorInView)
+        }
+
+        override fun onSelectionCleared() {
+            selectionController.onSelectionCleared()
+        }
+
+        override fun onPageWithoutText(page: Int) {
+            UiManager.showCenterShort(R.string.app_page_has_no_text)
+        }
+    }
     //endregion
 
     //region Lifecycle
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         bookmarkBadge = BookmarkBadgeRenderer(resources)
+        // 注意：initView 内部会调用 initPdf（加载文档并注册选区回调），
+        // 因此文本工具必须先于 initView 初始化，否则 lateinit 会崩溃。
+        initTextTools()
         initView(savedInstanceState)
         EventBus.getDefault().register(this)
 
@@ -251,6 +283,9 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
     override fun onDestroy() {
         super.onDestroy()
         EventBus.getDefault().unregister(this)
+        selectionController.hideMenu()
+        translateController.release()
+        annotationsByPage.clear()
         binding.appPdfview.recycle()
         bookmarkBadge.recycle()
         canvas = null
@@ -282,6 +317,14 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
 
     override fun onBackPressed() {
         when {
+            // 选区 / 译文卡片优先关闭
+            selectionController.isMenuVisible() -> {
+                selectionController.hideMenu()
+                binding.appPdfview.clearTextSelection()
+            }
+            translateController.isVisible() -> {
+                translateController.hide()
+            }
             binding.appLlContent.translationX == 0f -> {
                 // 等于 0 表示正处于打开状态，需要隐藏
                 hideContent(null)
@@ -759,6 +802,9 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
     @SuppressLint("ClickableViewAccessibility", "SetTextI18n")
     private fun initPdf(uri: Uri?, pdf: PDF?) {
         docLoaded = false
+        // 重新加载文档前清理浮层与选区，避免锚点残留
+        selectionController.hideMenu()
+        translateController.hide()
         binding.appSbProgress.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
                 binding.appTvPageinfo.text = (i + 1).toString() + " / " + pageCount
@@ -803,6 +849,8 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
                 binding.appSbProgress.progress = curPage
                 binding.appTvPageinfo.text = (curPage + 1).toString() + " / " + pageCount
                 toolbar?.post { toolbar?.title = pdf.name }
+                pdfId = pdf.id ?: 0L
+                refreshAnnotations()
                 configurator = binding.appPdfview.fromFile(File(pdf.path)).defaultPage(curPage)
             }
             else -> {
@@ -814,7 +862,13 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
         if (password != null) {
             configurator = configurator.password(password)
         }
-        configurator.disableLongpress()
+        configurator
+                // 长按取词：命中文本时不再回调 OnLongPressListener，故这里不能 disableLongpress()
+                .textSelectable(true)
+                .onTextSelected(textSelectionListener)
+                .onPageOverlay { canvas: Canvas?, width: Float, height: Float, page: Int ->
+                    overlayRenderer.draw(canvas, width, height, annotationsByPage[page])
+                }
                 .swipeHorizontal(Settings.swipeHorizontal)
                 .nightMode(isNightMode.value == true)
                 .pageFling(Settings.swipeHorizontal)
@@ -838,6 +892,10 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
                 }
                 .onPageChange { page: Int, _: Int ->
                     curPage = page
+                    // 页码变化时清理选区与浮层，避免锚点错位
+                    selectionController.hideMenu()
+                    binding.appPdfview.clearTextSelection()
+                    translateController.hide()
                     val pageInfo = "${page + 1} / ${this.pageCount}"
                     binding.appTvBookmark.isSelected = bookmarkMap.containsKey(page.toLong()) // 如果是书签则标红
                     binding.appQuickbarTitle.text = getTitle(page)
@@ -853,6 +911,16 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
                     init = false
                 }
                 .onTap { event: MotionEvent ->
+                    // 选区操作栏与译文卡片优先关闭，避免误触翻页
+                    if (selectionController.isMenuVisible()) {
+                        selectionController.hideMenu()
+                        binding.appPdfview.clearTextSelection()
+                        return@onTap true
+                    }
+                    if (translateController.isVisible()) {
+                        translateController.hide()
+                        return@onTap true
+                    }
                     if (judgeCloseMore()) return@onTap true
                     if (judgeCloseReadMethod()) return@onTap true
                     judgeFlipPage(event)
@@ -984,6 +1052,36 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
     private fun drawBookmark(canvas: Canvas?, pageWidth: Float) {
         bookmarkBadge.draw(canvas, pageWidth, scaleFactor)
     }
+
+    //region 文本选区 / 标注 / 翻译
+
+    private fun initTextTools() {
+        overlayRenderer = AnnotationOverlayRenderer(resources)
+        translateController = TranslateController(this, binding.appIncludeTranslateCard)
+        selectionController = TextSelectionController(
+                activity = this,
+                pdfView = binding.appPdfview,
+                menuBinding = binding.appIncludeSelectionMenu,
+                translateController = translateController,
+                annotationsOfPage = { page -> annotationsByPage[page].orEmpty() },
+                onAnnotationsChanged = { refreshAnnotations() })
+    }
+
+    /**
+     * 重新从数据库载入当前文档的标注，并按页分组缓存，供页面叠加绘制直接取用。
+     */
+    private fun refreshAnnotations() {
+        annotationsByPage.clear()
+        if (pdfId > 0L) {
+            for (annotation in DBHelper.queryAnnotations(pdfId)) {
+                annotationsByPage.getOrPut(annotation.page) { ArrayList() }.add(annotation)
+            }
+        }
+        selectionController.setPdfId(pdfId)
+        binding.appPdfview.invalidate()
+    }
+
+    //endregion
 
     private fun showQuickbar() {
         binding.appLlUndoredobar.animate()

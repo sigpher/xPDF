@@ -107,4 +107,35 @@
         <item>Unlimited</item>
     </string-array>
 
+    <!-- 文本选区 / 标注 / 翻译 -->
+    <string name="app_copy">Copy</string>
+    <string name="app_highlight">Highlight</string>
+    <string name="app_underline">Underline</string>
+    <string name="app_underline_added">Underlined</string>
+    <string name="app_note">Note</string>
+    <string name="app_translate">Translate</string>
+    <string name="app_save">Save</string>
+    <string name="app_retry">Retry</string>
+    <string name="app_copy_translation">Copy</string>
+    <string name="app_copy_success">Copied</string>
+    <string name="app_copy_empty">Nothing to copy</string>
+    <string name="app_note_hint">Add a note…</string>
+    <string name="app_page_has_no_text">No selectable text on this page</string>
+    <string name="app_highlight_added">Highlighted</string>
+    <string name="app_annotation_deleted">Annotation deleted</string>
+    <string name="app_note_dialog_title">Note</string>
+    <string name="app_note_dialog_title_existing">Edit annotation</string>
+    <string name="app_translate_identifying">Detecting language…</string>
+    <string name="app_translate_downloading">Downloading translation model…</string>
+    <string name="app_translate_translating">Translating…</string>
+    <string name="app_translate_failed">Translation failed. Check network and retry.</string>
+    <string name="app_translate_no_language">Source language not recognized</string>
+    <string name="app_translate_same_language">Already in target language</string>
+    <string name="app_translate_direction">%1$s → %2$s</string>
+    <string name="app_translate_external">Other apps</string>
+    <string name="app_language_chinese">Chinese</string>
+    <string name="app_language_english">English</string>
+    <string name="app_language_japanese">Japanese</string>
+    <string name="app_language_korean">Korean</string>
+
 </resources>
