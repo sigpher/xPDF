@@ -2,6 +2,7 @@ package com.sigpher.xpdf.common
 
 import android.view.View
 import android.widget.CheckBox
+import android.widget.ImageView
 import android.widget.TextView
 import com.sigpher.xpdf.R
 import com.sigpher.xpdf.common.widgets.BorderImageView
@@ -17,6 +18,14 @@ class CollectionHolder(itemView: View) : BaseHolder(itemView) {
     val tvTitle: TextView
     val tvCount: TextView
     override val checkBox: CheckBox
+
+    /** 按索引取封面图，避免调用方按 1~4 写四份分支 */
+    fun coverAt(index: Int): ImageView = when (index) {
+        0 -> ivCover1
+        1 -> ivCover2
+        2 -> ivCover3
+        else -> ivCover4
+    }
 
     companion object {
         const val DEFAULT_LAYOUT = R.layout.app_recycler_item_collection

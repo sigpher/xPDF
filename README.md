@@ -111,8 +111,9 @@ xPDF/
 │       ├── java/com/sigpher/xpdf/
 │       │   ├── about/                     # 关于页：版本信息、开源组件清单
 │       │   ├── common/                    # 基础设施
+│       │   │   ├── adapter/               # 列表基类与复用件：BaseListAdapter / CoverGridRenderer / KeywordFilter / ItemTypes
 │       │   │   ├── bean/                  # GreenDAO 实体与数据类：PDF / Collection / Cover / RecentPDF / Shortcut
-│       │   │   ├── event/                 # EventBus 事件
+│       │   │   ├── event/                 # EventBus 事件（唯一事件通道，LiveDataBus 已删除）
 │       │   │   ├── greendao/              # GreenDAO 生成类（DaoMaster / DaoSession / *Dao）
 │       │   │   ├── utils/                 # 工具类：PDF、图片、快捷方式、状态栏等
 │       │   │   └── widgets/               # 自定义控件：BorderImageView / NewViewPager 等

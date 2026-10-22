@@ -14,7 +14,7 @@ class MainFragmentAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm, BEHAVI
     override fun getItem(position: Int): Fragment {
         return if (position == 0) {
             RecentFragment.newInstance()
-        } else AllFragment2.newInstance()
+        } else AllFragment.newInstance()
     }
 
     override fun getCount(): Int = 2

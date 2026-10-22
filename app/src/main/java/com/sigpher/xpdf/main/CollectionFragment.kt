@@ -23,6 +23,7 @@ import com.sigpher.xpdf.common.*
 import com.sigpher.xpdf.common.bean.PDF
 import com.sigpher.xpdf.common.bean.Shortcut
 import com.sigpher.xpdf.common.event.AllEvent
+import com.sigpher.xpdf.common.event.UpdateAllEvent
 import com.sigpher.xpdf.common.utils.DialogUtils
 import com.sigpher.xpdf.common.utils.ShortcutUtils
 import com.sigpher.xpdf.preview.PreviewActivity
@@ -41,7 +42,7 @@ import com.sigpher.xpdf.databinding.AppFragmentCollectionBinding
 /**
  * @author sigpher
  */
-class CollectionFragment2 : DialogFragment(), IOperation, GroupingAdapter.Callback {
+class CollectionFragment : DialogFragment(), IOperation, GroupingAdapter.Callback {
 
     private val deleteDialog: BottomSheetDialog by lazy(LazyThreadSafetyMode.NONE) {
         val view = LayoutInflater.from(activity!!).inflate(R.layout.app_bottomdialog_delete, null)
@@ -81,7 +82,7 @@ class CollectionFragment2 : DialogFragment(), IOperation, GroupingAdapter.Callba
         }.apply { setOnDismissListener { etInput?.setText("") } }
     }
 
-    private lateinit var adapter: CollectionAdapter2
+    private lateinit var adapter: CollectionAdapter
     private var tvDeleteDescription: TextView? = null
     private var deleteLocal: View? = null
     private var etInput: EditText? = null
@@ -177,7 +178,7 @@ class CollectionFragment2 : DialogFragment(), IOperation, GroupingAdapter.Callba
         if (isNeedUpdateDb) {
             DBHelper.updatePDFs(pdfList)
             DataManager.updatePDFs()
-            LiveDataBus.with<Any>(EVENT_UPDATE_ALL_FRAGMENT).value = null
+            EventBus.getDefault().post(UpdateAllEvent())
         }
     }
 
@@ -333,7 +334,7 @@ class CollectionFragment2 : DialogFragment(), IOperation, GroupingAdapter.Callba
             }
         }
         binding.appRvCollection.layoutManager = lm
-        adapter = CollectionAdapter2(pdfList)
+        adapter = CollectionAdapter(pdfList)
         adapter.setOnItemClickListener { _, view, position ->
             if (adapter.isSelectMode) {
                 val pdf = pdfList[position]
@@ -480,11 +481,10 @@ class CollectionFragment2 : DialogFragment(), IOperation, GroupingAdapter.Callba
     }
 
     companion object {
-        const val EVENT_UPDATE_ALL_FRAGMENT = "EVENT_UPDATE_ALL_FRAGMENT"
         private const val BUNDLE_NAME = "BUNDLE_NAME"
 
-        fun newInstance(name: String?): CollectionFragment2 {
-            val fragment = CollectionFragment2()
+        fun newInstance(name: String?): CollectionFragment {
+            val fragment = CollectionFragment()
             val args = Bundle()
             args.putString(BUNDLE_NAME, name)
             fragment.arguments = args

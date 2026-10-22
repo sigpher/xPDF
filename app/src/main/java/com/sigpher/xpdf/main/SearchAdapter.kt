@@ -11,6 +11,8 @@ import com.sigpher.base.image.DefaultOption
 import com.sigpher.base.image.ImageLoader
 import com.sigpher.xpdf.R
 import com.sigpher.xpdf.common.*
+import com.sigpher.xpdf.common.adapter.ItemTypes
+import com.sigpher.xpdf.common.adapter.KeywordFilter
 import com.sigpher.xpdf.common.bean.PDF
 import com.sigpher.xpdf.common.event.RecentPDFEvent
 import com.sigpher.xpdf.preview.PreviewActivity
@@ -28,9 +30,19 @@ internal class SearchAdapter(
         canSelect: Boolean
 ) : AbstractAdapter<PDF>(sourceList, canSelect), Filterable {
 
-    private var inverse = false
     private val recentPDFEvent: RecentPDFEvent = RecentPDFEvent()
     private val filterList: MutableList<PDF> = ArrayList()
+
+    /** 关键字 + 反向过滤，与列表解耦，便于复用 */
+    private val keywordFilter = KeywordFilter(sourceList) { it.name }
+
+    init {
+        keywordFilter.onFilter = { result ->
+            filterList.clear()
+            filterList.addAll(result)
+            notifyDataSetChanged()
+        }
+    }
 
     fun update() {
         DataManager.updatePDFs()
@@ -40,40 +52,16 @@ internal class SearchAdapter(
         get() = filterList.isEmpty()
 
     fun setInverse(inverse: Boolean) {
-        this.inverse = inverse
+        keywordFilter.inverse = inverse
     }
 
-    override fun getFilter(): Filter {
-        return object : Filter() {
-            override fun performFiltering(constraint: CharSequence): FilterResults {
-                val keyword = constraint.toString()
-                val temp = ArrayList<PDF>()
-                if (!StringUtils.isEmpty(keyword)) {
-                    for (pdf in sourceList) {
-                        val contains = pdf.name.contains(keyword) != inverse
-                        if (contains) {
-                            temp.add(pdf)
-                        }
-                    }
-                }
-                val results = FilterResults()
-                results.values = temp
-                return results
-            }
-
-            override fun publishResults(constraint: CharSequence, results: FilterResults) {
-                filterList.clear()
-                filterList.addAll(results.values as MutableList<PDF>)
-                notifyDataSetChanged()
-            }
-        }
-    }
+    override fun getFilter(): Filter = keywordFilter
 
     override fun createHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        if (viewType == TYPE_EMPTY) {
+        if (viewType == ItemTypes.TYPE_EMPTY) {
             val itemView = inflater.inflate(EmptyHolder.DEFAULT_LAYOUT, parent, false)
             return EmptyHolder(itemView)
-        } else if (viewType == TYPE_HEADER) {
+        } else if (viewType == ItemTypes.TYPE_HEADER) {
             val itemView = inflater.inflate(HeaderHolder.DEFAULT_LAYOUT, parent, false)
             return HeaderHolder(itemView)
         }
@@ -123,11 +111,11 @@ internal class SearchAdapter(
 
     override fun getItemViewType(position: Int): Int {
         if (filterList.isEmpty()) {
-            return TYPE_EMPTY
+            return ItemTypes.TYPE_EMPTY
         }
         return if (position == 0) {
-            TYPE_HEADER
-        } else TYPE_CONTENT
+            ItemTypes.TYPE_HEADER
+        } else ItemTypes.TYPE_CONTENT
     }
 
     override fun onTap(viewHolder: RecyclerView.ViewHolder?, position: Int) {
@@ -145,11 +133,4 @@ internal class SearchAdapter(
     }
 
     override fun checkCurrent(viewHolder: RecyclerView.ViewHolder?, position: Int) {}
-
-    companion object {
-        private const val TYPE_EMPTY = 1
-        private const val TYPE_CONTENT = 2
-        private const val TYPE_HEADER = 3
-    }
-
 }

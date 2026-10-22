@@ -17,6 +17,7 @@ import com.sigpher.xpdf.common.*
 import com.sigpher.xpdf.common.bean.Cover
 import com.sigpher.xpdf.common.bean.Shortcut
 import com.sigpher.xpdf.common.event.AllEvent
+import com.sigpher.xpdf.common.event.UpdateAllEvent
 import com.sigpher.xpdf.common.utils.ShortcutUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.chad.library.adapter.base.callback.ItemDragAndSwipeCallback
@@ -34,9 +35,9 @@ import com.sigpher.xpdf.databinding.AppFragmentAllBinding
 /**
  * @author sigpher
  */
-class AllFragment2 : CommonFragment(), IOperation {
+class AllFragment : CommonFragment(), IOperation {
 
-    private lateinit var adapter: AllAdapter2
+    private lateinit var adapter: AllAdapter
     private val coverList = DataManager.getCoverList()
     private val selectList: MutableList<Cover> = ArrayList()
     private var isNeedUpdateDB = false
@@ -59,8 +60,11 @@ class AllFragment2 : CommonFragment(), IOperation {
         super.onViewCreated(view, savedInstanceState)
         isHorizontalLayout = Settings.linearLayout
         initView()
-        LiveDataBus.with<Any>(CollectionFragment2.EVENT_UPDATE_ALL_FRAGMENT)
-                .observe(this) { adapter.notifyDataSetChanged() }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onUpdateAllEvent(event: UpdateAllEvent) {
+        adapter.notifyDataSetChanged()
     }
 
     override fun onStart() {
@@ -193,7 +197,7 @@ class AllFragment2 : CommonFragment(), IOperation {
             }
         }
         binding.appRvAll.layoutManager = lm
-        adapter = AllAdapter2(coverList)
+        adapter = AllAdapter(coverList)
         adapter.setOnItemClickListener { _, view, position ->
             if (adapter.isSelectMode) {
                 val cover = coverList[position]
@@ -211,7 +215,7 @@ class AllFragment2 : CommonFragment(), IOperation {
                     dialogFragment = null
                 }
                 val name = coverList[position].name
-                dialogFragment = CollectionFragment2.newInstance(name)
+                dialogFragment = CollectionFragment.newInstance(name)
                 dialogFragment?.show(fragmentManager!!, "")
             }
         }
@@ -295,7 +299,7 @@ class AllFragment2 : CommonFragment(), IOperation {
         private const val SHORTCUT_PREFIX = "collection-"
 
         fun newInstance(): Fragment {
-            return AllFragment2()
+            return AllFragment()
         }
     }
 }

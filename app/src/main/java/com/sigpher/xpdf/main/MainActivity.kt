@@ -283,7 +283,7 @@ class MainActivity : CommonActivity(), IMainView {
 
     override fun onUpdate() {
         for (fragment in supportFragmentManager.fragments) {
-            (fragment as? AllFragment2)?.run {
+            (fragment as? AllFragment)?.run {
                 update()
                 return
             }
@@ -502,7 +502,7 @@ class MainActivity : CommonActivity(), IMainView {
             intent.extras?.remove(EXTRA_DIR_NAME)
             binding.appVp.apply {
                 currentItem = 1
-                post { (operation as? AllFragment2)?.openCollection(it) }
+                post { (operation as? AllFragment)?.openCollection(it) }
             }
         }
     }

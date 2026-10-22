@@ -9,6 +9,7 @@ import android.widget.CheckBox
 import androidx.recyclerview.widget.RecyclerView
 import com.sigpher.xpdf.R
 import com.sigpher.xpdf.common.EmptyHolder
+import com.sigpher.xpdf.common.adapter.ItemTypes
 import java.util.*
 
 /**
@@ -41,7 +42,7 @@ abstract class AbstractAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         context = parent.context
         inflater = LayoutInflater.from(context)
-        return if (viewType == TYPE_EMPTY) {
+        return if (viewType == ItemTypes.TYPE_EMPTY) {
             EmptyHolder(inflater.inflate(R.layout.app_recycler_item_emptyview, parent, false))
         } else {
             createHolder(parent, viewType).apply {
@@ -80,7 +81,7 @@ abstract class AbstractAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder
     override fun getItemCount(): Int = if (sourceList.isEmpty()) 1 else itemCount()
 
     override fun getItemViewType(position: Int): Int {
-        return if (sourceList.isEmpty()) TYPE_EMPTY else super.getItemViewType(position)
+        return if (sourceList.isEmpty()) ItemTypes.TYPE_EMPTY else super.getItemViewType(position)
     }
 
     fun handleCheckBox(cb: CheckBox, position: Int) {
@@ -124,9 +125,5 @@ abstract class AbstractAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder
     interface IPickCallback<T> {
         fun onStartPicking()
         fun onSelected(list: List<T>, selectAll: Boolean)
-    }
-
-    companion object {
-        private const val TYPE_EMPTY = 1
     }
 }

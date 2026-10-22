@@ -1,31 +1,37 @@
-package com.sigpher.xpdf.common
+package com.sigpher.xpdf.common.adapter
 
 import android.view.View
 import android.widget.CheckBox
 import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.RecyclerView
-import com.sigpher.xpdf.R
-import com.sigpher.xpdf.databinding.AppRecyclerItemEmptyviewBinding
 import com.chad.library.adapter.base.BaseItemDraggableAdapter
 import com.chad.library.adapter.base.BaseViewHolder
-import kotlin.collections.MutableList
-import kotlin.collections.MutableMap
-import kotlin.collections.mutableMapOf
-import kotlin.collections.set
+import com.sigpher.xpdf.R
+import com.sigpher.xpdf.common.BaseHolder
+import com.sigpher.xpdf.databinding.AppRecyclerItemEmptyviewBinding
 
 /**
+ * 书库列表统一基类：多选状态、payload 局部刷新、空视图与拖拽排序都在这里收口。
+ *
+ * 多选状态以「数据对象」为 key（而不是 position），这样拖拽排序、局部刷新后选中态不会错位。
+ *
  * @author sigpher
  */
-abstract class BaseAdapter<T, K : BaseViewHolder>(
+abstract class BaseListAdapter<T, K : BaseViewHolder>(
         @LayoutRes layoutId: Int,
         data: MutableList<T>
 ) : BaseItemDraggableAdapter<T, K>(layoutId, data) {
 
+    /** 多选框资源 id，子类布局不同需各自提供 */
     abstract val checkBoxId: Int
+
+    /** 空视图文案 */
     protected abstract val emptyText: CharSequence
+
+    /** 空视图图标 */
     protected abstract val emptyIcon: Int
 
-    private val checkArray: MutableMap<T, Boolean> = mutableMapOf()
+    private val checkArray: MutableMap<T, Boolean> = HashMap()
 
     var isSelectMode = false
         protected set
@@ -50,15 +56,16 @@ abstract class BaseAdapter<T, K : BaseViewHolder>(
         if (payloads.isEmpty()) {
             super.onBindViewHolder(holder, position, payloads)
         } else {
+            // payload 刷新只更新选中态，避免整项重绘导致封面闪烁
             (holder as? BaseHolder)?.run {
-                handleCheckBox(holder, this.checkBox, position)
+                handleCheckBox(holder, checkBox, position)
             }
         }
     }
 
     override fun setOnItemClick(v: View, position: Int) {
         super.setOnItemClick(v, position)
-        if (getItemViewType(position) == 0) {
+        if (isContentType(position)) {
             val cb = v.findViewById<CheckBox>(checkBoxId)
             val isChecked = !cb.isChecked
             cb.isChecked = isChecked
@@ -68,11 +75,8 @@ abstract class BaseAdapter<T, K : BaseViewHolder>(
 
     override fun setOnItemLongClick(v: View, position: Int): Boolean {
         val consume = super.setOnItemLongClick(v, position)
-        if (getItemViewType(position) == 0) {
-            isSelectMode = true
-            checkArray[data[position]] = true
-            v.findViewById<CheckBox>(checkBoxId).isChecked = true
-            notifyItemRangeChanged(0, itemCount, 0)
+        if (isContentType(position)) {
+            enterSelectMode(v, position)
             return consume
         }
         return false
@@ -81,27 +85,27 @@ abstract class BaseAdapter<T, K : BaseViewHolder>(
     fun selectAll(selectAll: Boolean) {
         if (selectAll) {
             for (index in 0 until itemCount) {
-                checkArray[data[index]] = selectAll
+                checkArray[data[index]] = true
             }
         } else {
             checkArray.clear()
         }
-        notifyItemRangeChanged(0, itemCount, 0)
+        notifyItemRangeChanged(0, itemCount, PAYLOAD_SELECT)
     }
 
     fun enterSelectMode(v: View, position: Int) {
-        if (getItemViewType(position) == 0) {
+        if (isContentType(position)) {
             isSelectMode = true
             checkArray[data[position]] = true
             v.findViewById<CheckBox>(checkBoxId).isChecked = true
-            notifyItemRangeChanged(0, itemCount, 0)
+            notifyItemRangeChanged(0, itemCount, PAYLOAD_SELECT)
         }
     }
 
     fun exitSelectMode() {
         isSelectMode = false
         checkArray.clear()
-        notifyItemRangeChanged(0, itemCount, 0)
+        notifyItemRangeChanged(0, itemCount, PAYLOAD_SELECT)
     }
 
     fun isChecked(position: Int): Boolean = checkArray[data[position]] ?: false
@@ -114,5 +118,14 @@ abstract class BaseAdapter<T, K : BaseViewHolder>(
             cb.scaleY = 0.8f
             cb.isChecked = checkArray[data[position]] ?: false
         }
+    }
+
+    private fun isContentType(position: Int): Boolean {
+        return position in data.indices && getItemViewType(position) == ItemTypes.TYPE_NORMAL
+    }
+
+    companion object {
+        /** 仅刷新选中态的 payload，避免整项重建 */
+        const val PAYLOAD_SELECT = 1001
     }
 }

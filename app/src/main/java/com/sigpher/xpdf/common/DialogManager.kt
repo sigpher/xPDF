@@ -72,17 +72,6 @@ object DialogManager {
         return DialogUtils.createBottomSheetDialog(context, view)
     }
 
-    fun createImportDialog(context: Context, callback: (EditText, Button, Button, Button) -> Unit): BottomSheetDialog {
-        val view = LayoutInflater.from(context.applicationContext)
-                .inflate(R.layout.app_bottomdialog_import, null)
-        val etInput = view.findViewById<EditText>(R.id.app_et_input)
-        val btnImportExist = view.findViewById<Button>(R.id.app_btn_import_exist)
-        val btnBaseFolder = view.findViewById<Button>(R.id.app_btn_base_folder)
-        val btnConfirm = view.findViewById<Button>(R.id.app_btn_confirm)
-        callback(etInput, btnImportExist, btnBaseFolder, btnConfirm)
-        return DialogUtils.createBottomSheetDialog(context, view)
-    }
-
     fun createGroupingDialog(context: Context, enableAddNew: Boolean, callback: GroupingAdapter.Callback?): BottomSheetDialog {
         val view = LayoutInflater.from(context.applicationContext)
                 .inflate(R.layout.app_bottomdialog_grouping, null)
@@ -103,19 +92,6 @@ object DialogManager {
         val dialog = DialogUtils.createBottomSheetDialog(context, view, R.style.AppRegroupingAnim, true)
         dialog.setOnDismissListener { dialogTemp: DialogInterface? -> rv.scrollToPosition(0) }
         return dialog
-    }
-
-    fun createScanDialog(context: Context, callback: (TextView, TextView, Button) -> Unit): BottomSheetDialog {
-        val view = LayoutInflater.from(context.applicationContext)
-                .inflate(R.layout.app_bottomdialog_scan, null)
-        val tvScanCount = view.findViewById<TextView>(R.id.app_tv_scan_count)
-        val tvPdfCount = view.findViewById<TextView>(R.id.app_tv_pdf_count)
-        val btnStopScan = view.findViewById<Button>(R.id.app_btn_stop_scan)
-        callback(tvScanCount, tvPdfCount, btnStopScan)
-        val scanDialog = DialogUtils.createBottomSheetDialog(context, view)
-        scanDialog.setCanceledOnTouchOutside(false)
-        scanDialog.setCancelable(false)
-        return scanDialog
     }
 
     fun createImportInfoDialog(context: Context, callback: (TextView, ProgressBar, TextView, Button) -> Unit): BottomSheetDialog {

@@ -12,22 +12,25 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.sigpher.base.image.DefaultOption;
-import com.sigpher.base.image.ImageLoader;
 import com.sigpher.xpdf.R;
+import com.sigpher.xpdf.common.adapter.CoverGridRenderer;
+import com.sigpher.xpdf.common.adapter.ItemTypes;
 import com.sigpher.xpdf.common.bean.Cover;
 import com.blankj.utilcode.util.ConvertUtils;
-import com.blankj.utilcode.util.StringUtils;
 
 import java.util.List;
 
 /**
+ * 分组选择对话框（重分组 / 移动到分组）的列表 Adapter。
+ *
+ * 书封渲染与 {@link com.sigpher.xpdf.main.AllAdapter} 共用 {@link CoverGridRenderer}。
+ *
  * @author sigpher
  */
 public class GroupingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private static final int TYPE_EMPTY = 1;
-    private static final int TYPE_ADD_COLLECTION = 2;
+    private static final int TYPE_EMPTY = ItemTypes.TYPE_EMPTY;
+    private static final int TYPE_ADD_COLLECTION = ItemTypes.TYPE_ADD_COLLECTION;
 
     private Context context;
 
@@ -93,37 +96,8 @@ public class GroupingAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             CollectionHolder holder = (CollectionHolder) viewHolder;
             if (!coverList.isEmpty()) {
                 Cover c = coverList.get(enableAddNew ? position - 1 : position);
-                List<String> coverList = c.coverList;
-                int count = c.count;
-
-                holder.getTvTitle().setText(c.name);
-                holder.getTvCount().setText(context.getString(R.string.app_total, count));
-                setVisibility(holder, count);
-                if (count == 0) return;
-                setCover(holder.getIvCover1(), coverList.get(0));
-                if (count == 1) return;
-                setCover(holder.getIvCover2(), coverList.get(1));
-                if (count == 2) return;
-                setCover(holder.getIvCover3(), coverList.get(2));
-                if (count == 3) return;
-                setCover(holder.getIvCover4(), coverList.get(3));
+                CoverGridRenderer.INSTANCE.render(holder, c);
             }
-        }
-    }
-
-    private void setVisibility(CollectionHolder holder, int count) {
-        holder.getIvCover1().setVisibility(count >= 1 ? View.VISIBLE : View.INVISIBLE);
-        holder.getIvCover2().setVisibility(count >= 2 ? View.VISIBLE : View.INVISIBLE);
-        holder.getIvCover3().setVisibility(count >= 3 ? View.VISIBLE : View.INVISIBLE);
-        holder.getIvCover4().setVisibility(count >= 4 ? View.VISIBLE : View.INVISIBLE);
-    }
-
-    private void setCover(ImageView ivCover, String path) {
-        if (!StringUtils.isEmpty(path)) {
-            ImageLoader.load(context, new DefaultOption.Builder(path).into(ivCover));
-        } else {
-            ivCover.setScaleType(ImageView.ScaleType.FIT_XY);
-            ivCover.setImageResource(R.drawable.app_img_none_cover);
         }
     }
 
