@@ -30,9 +30,12 @@ dependencies {
     api('com.github.barteksc:pdfium-android:1.9.0') {
         exclude group: 'com.android.support'
     }
-    // 基础库改用 sigpher/Base fork（原 com.aaron:base 依赖的 JCenter 已停服）
-    implementation 'com.github.sigpher:Base:1.1.5-beta9'
+    // 本模块不依赖 sigpher/Base，避免把图片加载等无关依赖带给使用方
     implementation 'androidx.core:core-ktx:1.13.1'
+    // AboutUtils 使用了其中的 StringUtils / PathUtils
+    implementation 'com.blankj:utilcodex:1.23.7'
+    // PDFView 用 MutableLiveData 暴露当前缩放比例；原先由 sigpher/Base 传递带入
+    implementation 'androidx.lifecycle:lifecycle-livedata-core:2.6.2'
 }
 repositories {
     mavenCentral()

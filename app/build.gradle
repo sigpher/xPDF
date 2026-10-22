@@ -99,6 +99,7 @@ android {
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
+    // 仅使用 TabLayout；其布局资源仍引用 ConstraintLayout 属性，故不能排除该传递依赖
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.multidex:multidex:2.0.1'
     // 仅需要 ViewPager（原 legacy-support-v4 已无用）
@@ -110,8 +111,10 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 
     implementation project(':android-pdf-viewer')
-    // 基础库：原 com.aaron:base 已停止维护（JCenter 已停服），改用 sigpher/Base fork，经 JitPack 发布
-    implementation 'com.github.sigpher:Base:1.1.5-beta9'
+    // 基础库：原 com.aaron:base 已停止维护（JCenter 已停服），改用 sigpher/Base fork 的瘦身版 1.2.0
+    // 1.2.0 只保留 base/image/impl/util，已移除 retrofit/rxjava/autodispose/sonic/okdownload 等传递依赖
+    // 多模块坐标：group 为 com.github.sigpher.Base，artifactId 为模块名 base
+    implementation 'com.github.sigpher.Base:base:1.2.0'
     implementation 'org.greenrobot:greendao:3.3.0'
     implementation 'com.github.anzewei:parallaxbacklayout:1.1.9'
     implementation 'com.github.mmin18:realtimeblurview:1.2.1'

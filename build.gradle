@@ -20,6 +20,8 @@ buildscript {
 
 allprojects {
     repositories {
+        // 本机用 `:base:publishToMavenLocal` 发布的 sigpher/Base 1.2.0 优先命中
+        mavenLocal()
         google()
         mavenCentral()
         // JCenter 已停止服务，保留原地址的同时补充镜像兜底

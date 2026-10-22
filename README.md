@@ -6,7 +6,7 @@
 - 包名（applicationId）：`com.sigpher.xpdf`
 - 版本：`3.0.0`（versionCode `33`）
 - 最低支持：Android 5.0（API 21），compileSdk / targetSdk 34
-- 产物：**release**（约 5.2 MB，仅 arm64-v8a）与 **debug** 两个变体（`app/build/outputs/apk/release/app-release.apk`）
+- 产物：**release**（约 5.1 MB，仅 arm64-v8a）与 **debug** 两个变体（`app/build/outputs/apk/release/app-release.apk`）
 
 ## 功能特性
 
@@ -95,7 +95,7 @@ gradlew.bat :app:assembleDebug
 ### 4. 常见构建问题
 
 - **依赖拉取失败**：`pdfium-android`、`parallaxbacklayout`、`atv` 等老 AAR 只发布在已停服的 JCenter，工程通过 `https://maven.aliyun.com/repository/public` 镜像解析；若镜像不可用，可把对应 AAR 收进 `app/libs` 或本地 maven 仓库。
-- **基础库依赖**：原作者的基础库 `com.aaron:base` 发布在已停服的 JCenter 上，工程已改用 fork 版本 `com.github.sigpher:Base:1.1.5-beta9`（源码见 [sigpher/Base](https://github.com/sigpher/Base)，包名 `com.sigpher.base`，由 JitPack 按 tag 构建发布）。首次构建会由 JitPack 现场编译，耗时略长；若 JitPack 不可用，可克隆该仓库后执行 `./gradlew :base:install` 安装到本地 `~/.m2`，并在根 `build.gradle` 的 `allprojects.repositories` 中加入 `mavenLocal()`。
+- **基础库依赖**：原作者的基础库 `com.aaron:base` 发布在已停服的 JCenter 上，工程改用瘦身后的 fork `com.github.sigpher.Base:base:1.2.0`（源码见 [sigpher/Base](https://github.com/sigpher/Base)，包名 `com.sigpher.base`）。1.2.0 只保留 `base/image/impl/util`，不再传递 retrofit/rxjava/autodispose/sonic/okdownload。首次构建会由 JitPack 按 tag 现场编译，耗时略长；若 JitPack 不可用，可在该仓库执行 `./gradlew :base:publishToMavenLocal` 安装到本地 `~/.m2`（根 `build.gradle` 的 `allprojects.repositories` 已包含 `mavenLocal()`）。
 - **JDK 版本报错**：出现 `Unsupported class file major version` 或 `jlink` 报错时，确认 Gradle JDK 为 17（`~/.gradle/gradle.properties` 里的 `org.gradle.java.home` 优先级高于 `JAVA_HOME`）。
 - **签名文件不存在**：检查 `local.properties` 中 `STORE_FILE_NAME` 指向的文件是否在 `app/` 目录下（`file(...)` 以模块目录为基准解析）。
 
