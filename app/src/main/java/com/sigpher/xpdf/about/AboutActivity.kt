@@ -50,6 +50,11 @@ class AboutActivity : CommonActivity(), IAboutView {
         return true
     }
 
+    override fun onDestroy() {
+        mPresenter.detach()
+        super.onDestroy()
+    }
+
     override fun onShowLibrary(list: List<Library>) {
         initLibrary(list)
     }

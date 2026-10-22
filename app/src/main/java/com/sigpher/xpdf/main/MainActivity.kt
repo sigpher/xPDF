@@ -171,6 +171,7 @@ class MainActivity : CommonActivity(), IMainView {
     }
 
     override fun onDestroy() {
+        presenter.detach()
         super.onDestroy()
         EventBus.getDefault().unregister(this)
     }
