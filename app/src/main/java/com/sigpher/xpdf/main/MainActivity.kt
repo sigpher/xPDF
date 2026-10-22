@@ -23,7 +23,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.sigpher.base.impl.OnClickListenerImpl
 import com.sigpher.xpdf.R
 import com.sigpher.xpdf.about.AboutActivity
 import com.sigpher.xpdf.common.*
@@ -32,6 +31,7 @@ import com.sigpher.xpdf.common.bean.Cover
 import com.sigpher.xpdf.common.event.ImportEvent
 import com.sigpher.xpdf.common.event.LegacyMissingEvent
 import android.util.Base64
+import com.sigpher.xpdf.common.utils.OnClickListenerImpl
 import com.sigpher.xpdf.common.widgets.ImageTextView
 import com.sigpher.xpdf.settings.SettingsActivity
 import com.blankj.utilcode.constant.PermissionConstants

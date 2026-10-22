@@ -10,13 +10,13 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.GridLayoutManager.SpanSizeLookup
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ItemDecoration
-import com.sigpher.base.impl.TextWatcherImpl
 import com.sigpher.xpdf.R
 import com.sigpher.xpdf.common.CommonActivity
 import com.sigpher.xpdf.common.DataManager
 import com.sigpher.xpdf.common.Settings
 import com.sigpher.xpdf.common.XGridDecoration
 import com.sigpher.xpdf.common.event.RecentPDFEvent
+import com.sigpher.xpdf.common.utils.TextWatcherImpl
 import com.blankj.utilcode.util.ConvertUtils
 import com.blankj.utilcode.util.KeyboardUtils
 import com.github.anzewei.parallaxbacklayout.ParallaxBack

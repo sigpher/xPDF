@@ -29,7 +29,7 @@ internal class AboutPresenter(view: IAboutView) : IAboutPresenter(view) {
                 "AndroidUtilCode",
                 "Material Components",
                 "AndroidPdfViewer / PdfiumAndroid",
-                "Base（sigpher fork）")
+                "Base（内联工具类）")
         val LIBRARY_AUTHOR = arrayOf(
                 "bmelnychuk",
                 "mmin18",
@@ -40,7 +40,7 @@ internal class AboutPresenter(view: IAboutView) : IAboutPresenter(view) {
                 "blankj",
                 "Google",
                 "barteksc",
-                "sigpher")
+                "AaronZheng / sigpher")
         val LIBRARY_INTRODUCE = arrayOf(
                 "AndroidTreeView. TreeView implementation for android",
                 "A realtime blurring overlay for Android (like iOS UIVisualEffectView)",
@@ -51,6 +51,6 @@ internal class AboutPresenter(view: IAboutView) : IAboutPresenter(view) {
                 "Android developers' tool library, providing common utility classes",
                 "Modular and customizable Material Design UI components for Android",
                 "Android view for displaying PDFs rendered with PdfiumAndroid",
-                "Activity/Fragment 基类、图片加载与状态栏工具（上游 AaronZheng9603/Base 的瘦身 fork）")
+                "状态栏工具与 TextWatcher / 点击防抖基类，已内联进 app 源码（Apache-2.0）")
     }
 }

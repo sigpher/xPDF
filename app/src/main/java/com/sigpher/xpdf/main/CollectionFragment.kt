@@ -17,7 +17,6 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.sigpher.base.impl.TextWatcherImpl
 import com.sigpher.xpdf.R
 import com.sigpher.xpdf.common.*
 import com.sigpher.xpdf.common.bean.PDF
@@ -26,6 +25,7 @@ import com.sigpher.xpdf.common.event.AllEvent
 import com.sigpher.xpdf.common.event.UpdateAllEvent
 import com.sigpher.xpdf.common.utils.DialogUtils
 import com.sigpher.xpdf.common.utils.ShortcutUtils
+import com.sigpher.xpdf.common.utils.TextWatcherImpl
 import com.sigpher.xpdf.preview.PreviewActivity
 import com.blankj.utilcode.util.KeyboardUtils
 import com.blankj.utilcode.util.StringUtils

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    以下 base_* 颜色原先由 Base AAR 提供，移除该依赖后迁入 app 并保留原命名，
+    避免改动已有布局与代码中的引用。
+-->
+<resources>
+    <color name="base_black">#DE000000</color>
+    <color name="base_black_divider">#1F000000</color>
+    <color name="base_black_divider_deep">#2E000000</color>
+    <color name="base_black_divider_shallow">#0F000000</color>
+    <color name="base_black_hint">#42000000</color>
+    <color name="base_black_shallow">#8A000000</color>
+    <color name="base_transparent">#00000000</color>
+    <color name="base_white">#FFFFFFFF</color>
+    <color name="base_white_divider">#4DFFFFFF</color>
+    <color name="base_white_hint">#80FFFFFF</color>
+    <color name="base_white_shallow">#B3FFFFFF</color>
+</resources>

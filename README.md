@@ -95,7 +95,7 @@ gradlew.bat :app:assembleDebug
 ### 4. 常见构建问题
 
 - **依赖拉取失败**：`pdfium-android`、`parallaxbacklayout`、`atv` 等老 AAR 只发布在已停服的 JCenter，工程通过 `https://maven.aliyun.com/repository/public` 镜像解析；若镜像不可用，可把对应 AAR 收进 `app/libs` 或本地 maven 仓库。
-- **基础库依赖**：原作者的基础库 `com.aaron:base` 发布在已停服的 JCenter 上，工程改用瘦身后的 fork `com.github.sigpher.Base:base:1.2.0`（源码见 [sigpher/Base](https://github.com/sigpher/Base)，包名 `com.sigpher.base`）。1.2.0 只保留 `base/image/impl/util`，不再传递 retrofit/rxjava/autodispose/sonic/okdownload。首次构建会由 JitPack 按 tag 现场编译，耗时略长；若 JitPack 不可用，可在该仓库执行 `./gradlew :base:publishToMavenLocal` 安装到本地 `~/.m2`（根 `build.gradle` 的 `allprojects.repositories` 已包含 `mavenLocal()`）。
+- **基础库已内联**：原作者的基础库 `com.aaron:base` 只发布在已停服的 JCenter 上，工程此前依赖瘦身 fork `com.github.sigpher.Base:base:1.2.0`；现在已整体移除该 AAR，把 app 实际用到的部分下沉到本仓库——`common/utils` 下的 `StatusBarUtils` / `TextWatcherImpl` / `OnClickListenerImpl` 内联自该库（[sigpher/Base](https://github.com/sigpher/Base)，Apache-2.0），`base_*` 颜色与字号资源迁入 `res/values`，封面加载改为 Glide 直接调用。原先由它传递的 `glide:4.9.0` 与 `utilcodex:1.23.7` 已在 `app/build.gradle` 显式声明，构建时不再需要 JitPack 现场编译或 `publishToMavenLocal`。
 - **JDK 版本报错**：出现 `Unsupported class file major version` 或 `jlink` 报错时，确认 Gradle JDK 为 17（`~/.gradle/gradle.properties` 里的 `org.gradle.java.home` 优先级高于 `JAVA_HOME`）。
 - **签名文件不存在**：检查 `local.properties` 中 `STORE_FILE_NAME` 指向的文件是否在 `app/` 目录下（`file(...)` 以模块目录为基准解析）。
 
@@ -232,7 +232,7 @@ xPDF/
 | RxJava / RxAndroid | ReactiveX | 异步与响应式 |
 | BaseRecyclerViewAdapterHelper | CymChad | RecyclerView 适配器 |
 | AndroidUtilCode | Blankj | 通用工具类 |
-| Base（sigpher fork） | AaronZheng / sigpher | Activity 基类、图片加载、状态栏工具 |
+| Base（已内联） | AaronZheng / sigpher | 状态栏工具与 TextWatcher / 点击防抖基类 |
 
 ## 许可证
 

@@ -7,8 +7,6 @@ import android.widget.Filter
 import android.widget.Filterable
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
-import com.sigpher.base.image.DefaultOption
-import com.sigpher.base.image.ImageLoader
 import com.sigpher.xpdf.R
 import com.sigpher.xpdf.common.*
 import com.sigpher.xpdf.common.adapter.ItemTypes
@@ -18,6 +16,7 @@ import com.sigpher.xpdf.common.event.RecentPDFEvent
 import com.sigpher.xpdf.preview.PreviewActivity
 import com.blankj.utilcode.util.StringUtils
 import com.blankj.utilcode.util.TimeUtils
+import com.bumptech.glide.Glide
 import org.greenrobot.eventbus.EventBus
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -83,7 +82,7 @@ internal class SearchAdapter(
             viewHolder.tvTitle.text = bookName
             viewHolder.tvProgress.text = context.getString(R.string.app_already_read, pdf.progress)
             if (!StringUtils.isEmpty(cover)) {
-                ImageLoader.load(context, DefaultOption.Builder(cover).into(viewHolder.ivCover))
+                Glide.with(context).load(cover).into(viewHolder.ivCover)
             } else {
                 viewHolder.ivCover.scaleType = ImageView.ScaleType.FIT_XY
                 viewHolder.ivCover.setImageResource(R.drawable.app_img_none_cover)

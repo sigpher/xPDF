@@ -18,13 +18,13 @@ import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.MutableLiveData
-import com.sigpher.base.impl.OnClickListenerImpl
-import com.sigpher.base.impl.TextWatcherImpl
 import com.sigpher.xpdf.R
 import com.sigpher.xpdf.common.*
 import com.sigpher.xpdf.common.bean.PDF
 import com.sigpher.xpdf.common.event.RecentPDFEvent
 import com.sigpher.xpdf.common.utils.NotchUtils
+import com.sigpher.xpdf.common.utils.OnClickListenerImpl
+import com.sigpher.xpdf.common.utils.TextWatcherImpl
 import com.sigpher.xpdf.data.PreviewRepository
 import com.sigpher.xpdf.settings.SettingsActivity.Companion.start
 import com.blankj.utilcode.util.*

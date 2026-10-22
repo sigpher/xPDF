@@ -20,9 +20,6 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
-# xPDF
--keep class com.sigpher.xpdf.common.event.RecentPDFEvent { *; }
-
 # AndroidPdfViewer
 -keep class com.shockwave.**
 
@@ -224,6 +221,7 @@ public static java.lang.String TABLENAME;
   **[] $VALUES;
   public *;
 }
+-dontwarn com.bumptech.glide.**
 #-keepresourcexmlelements manifest/application/meta-data@value=GlideModule
 
 # ============================== 框架中使用到的第三方依赖 end ==============================

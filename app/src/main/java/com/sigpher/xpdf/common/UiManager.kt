@@ -12,8 +12,8 @@ import androidx.annotation.StringRes
 import androidx.appcompat.widget.Toolbar
 import com.blankj.utilcode.util.ConvertUtils
 import com.blankj.utilcode.util.ToastUtils
-import com.sigpher.base.util.StatusBarUtils
 import com.sigpher.xpdf.R
+import com.sigpher.xpdf.common.utils.StatusBarUtils
 
 /**
  * 状态栏/导航栏与轻提示的统一入口。

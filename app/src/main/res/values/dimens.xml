@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    以下 base_text_* 字号原先由 Base AAR 提供，移除该依赖后迁入 app 并保留原命名。
+-->
+<resources>
+    <dimen name="base_text_small">12sp</dimen>
+    <dimen name="base_text_normal">14sp</dimen>
+    <dimen name="base_text_large">16sp</dimen>
+    <dimen name="base_text_hlarge">18sp</dimen>
+    <dimen name="base_text_xhlarge">20sp</dimen>
+    <dimen name="base_text_xxhlarge">22sp</dimen>
+    <dimen name="base_text_xxxhlarge">24sp</dimen>
+    <dimen name="base_text_xxxxhlarge">26sp</dimen>
+</resources>

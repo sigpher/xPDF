@@ -111,10 +111,11 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 
     implementation project(':android-pdf-viewer')
-    // 基础库：原 com.aaron:base 已停止维护（JCenter 已停服），改用 sigpher/Base fork 的瘦身版 1.2.0
-    // 1.2.0 只保留 base/image/impl/util，已移除 retrofit/rxjava/autodispose/sonic/okdownload 等传递依赖
-    // 多模块坐标：group 为 com.github.sigpher.Base，artifactId 为模块名 base
-    implementation 'com.github.sigpher.Base:base:1.2.0'
+    // 原先由 Base AAR 传递提供的两个库，移除该依赖后改为显式声明
+    // Glide：封面加载，版本与 Base 内部一致，不升级大版本
+    implementation 'com.github.bumptech.glide:glide:4.9.0'
+    // AndroidUtilCode：StringUtils / TimeUtils / ToastUtils / SPStaticUtils 等通用工具类
+    implementation 'com.blankj:utilcodex:1.23.7'
     implementation 'org.greenrobot:greendao:3.3.0'
     implementation 'com.github.anzewei:parallaxbacklayout:1.1.9'
     implementation 'com.github.mmin18:realtimeblurview:1.2.1'

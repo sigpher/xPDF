@@ -3,8 +3,7 @@ package com.sigpher.xpdf.common.adapter
 import android.view.View
 import android.widget.ImageView
 import com.blankj.utilcode.util.StringUtils
-import com.sigpher.base.image.DefaultOption
-import com.sigpher.base.image.ImageLoader
+import com.bumptech.glide.Glide
 import com.sigpher.xpdf.R
 import com.sigpher.xpdf.common.CollectionHolder
 import com.sigpher.xpdf.common.bean.Cover
@@ -33,7 +32,7 @@ object CoverGridRenderer {
     /** 单张封面：空路径时显示占位图 */
     fun bindCover(ivCover: ImageView, path: String?) {
         if (!StringUtils.isEmpty(path)) {
-            ImageLoader.load(ivCover.context, DefaultOption.Builder(path).into(ivCover))
+            Glide.with(ivCover.context).load(path).into(ivCover)
         } else {
             ivCover.scaleType = ImageView.ScaleType.FIT_XY
             ivCover.setImageResource(R.drawable.app_img_none_cover)

@@ -20,7 +20,7 @@ buildscript {
 
 allprojects {
     repositories {
-        // 本机用 `:base:publishToMavenLocal` 发布的 sigpher/Base 1.2.0 优先命中
+        // 本机 ~/.m2 中收编的私有 / 已停服依赖优先命中
         mavenLocal()
         google()
         mavenCentral()
