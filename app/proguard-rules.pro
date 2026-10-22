@@ -210,6 +210,9 @@
 -keep public class com.google.gson.**
 -keep public class com.google.gson.** {public private protected *;}
 # 需要在各自工程下的混淆规则中,将bean实体类keep掉
+# Gson 按字段名读写 JSON（书签、备份文件），字段名一旦被混淆，跨版本就再也读不回来
+-keepclassmembers class com.sigpher.xpdf.common.bean.** { <fields>; }
+-keepclassmembers class com.sigpher.xpdf.preview.Bookmark { <fields>; }
 
 # >>>>>>>>>>>> EventBus
 -keepattributes *Annotation*

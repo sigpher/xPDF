@@ -2,6 +2,7 @@ package com.sigpher.xpdf.common.adapter
 
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.CheckBox
 import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.RecyclerView
@@ -18,9 +19,21 @@ import com.sigpher.xpdf.databinding.AppRecyclerItemEmptyviewBinding
  * @author sigpher
  */
 abstract class BaseListAdapter<T, K : BaseViewHolder>(
-        @LayoutRes layoutId: Int,
+        @LayoutRes private val itemLayoutId: Int,
         data: MutableList<T>
-) : BaseItemDraggableAdapter<T, K>(layoutId, data) {
+) : BaseItemDraggableAdapter<T, K>(itemLayoutId, data) {
+
+    /**
+     * 自己创建 ViewHolder，而不走 BRVAH 的默认实现。
+     *
+     * BRVAH 默认通过反射读取子类的泛型参数 K 来实例化 ViewHolder，R8 把本基类合并优化掉之后
+     * 反射失败，会退化成通用的 BaseViewHolder，`convert(helper: XxxHolder, ...)` 里的强制转换
+     * 随即抛 ClassCastException（导入书籍后一进列表就崩）。
+     */
+    protected abstract fun createHolder(itemView: View): K
+
+    override fun onCreateDefViewHolder(parent: ViewGroup, viewType: Int): K =
+            createHolder(LayoutInflater.from(parent.context).inflate(itemLayoutId, parent, false))
 
     /** 多选框资源 id，子类布局不同需各自提供 */
     abstract val checkBoxId: Int

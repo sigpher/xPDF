@@ -167,7 +167,10 @@ xPDF/
 - **清理**：删除 `BookmarkFragment` 无用 import、混淆规则中 `RecentPDFEvent` 的 `-keep`（data class，无反射），补充 `-dontwarn com.bumptech.glide.**`
 - **修复启动崩溃（release 混淆）**：greenDAO 的 `DaoConfig` 用 `Class.forName(daoClass.getName() + "$Properties")` 反射取字段，而 R8 只保留了 `$Properties` 内部类原名、却把 DAO 类重命名为 `a.b`，运行时拼出的 `a.b$Properties` 不存在，抛 `DaoException: Could not init DAOConfig`；现用 `-keepnames` 固定 DAO 类名，并保留 `createTable` / `dropTable`（`MigrationHelper` 反射调用）
 - **修复空列表崩溃**：`BaseQuickAdapter.getEmptyView()` 返回的是内部 `FrameLayout` 容器，`BaseListAdapter` 曾把它当布局根直接 `bind`，空书库时抛 `ClassCastException: FrameLayout cannot be cast to RelativeLayout`；改为持有自己 inflate 的 binding
-- 体积：APK 5,369,260 → 5,367,869 字节；dex 类数 2566 → 2563
+- **修复导入后崩溃**：BRVAH 默认用反射读取适配器泛型参数来实例化 `ViewHolder`，R8 把 `BaseListAdapter` 合并优化后反射失败、退化成通用 `BaseViewHolder`，`convert(helper: CollectionHolder, …)` 的强制转换抛 `ClassCastException`（一导入书籍就崩，且之后每次启动都崩）；改为在基类里用抽象工厂 `createHolder()` 自行创建
+- **修复打开 PDF 崩溃**：书签 JSON 用匿名 `TypeToken<List<Bookmark>>` 解析，R8 合并匿名内部类后泛型签名丢失，抛 `RuntimeException: Missing type parameter.`；改用 `Array<Bookmark>::class.java` 解析
+- **修复书签/备份 JSON 字段名被混淆**：Gson 按字段名读写，新增 `<fields>` 保留规则，避免升级后旧书签、旧备份读不回来
+- 体积：APK 5,369,260 → 5,369,427 字节（dex 类数 2566 → 2563）
 
 ### 0.1.0（versionCode 1）
 

@@ -30,7 +30,6 @@ import com.sigpher.xpdf.settings.SettingsActivity.Companion.start
 import com.blankj.utilcode.util.*
 import com.github.barteksc.pdfviewer.PDFView
 import com.github.barteksc.pdfviewer.PDFView.Configurator
-import com.google.gson.reflect.TypeToken
 import com.shockwave.pdfium.PdfDocument
 import com.shockwave.pdfium.PdfPasswordException
 import org.greenrobot.eventbus.EventBus
@@ -793,13 +792,13 @@ class PreviewActivity : CommonActivity(), IActivityInterface, View.OnClickListen
 //            }
             pdf != null -> {
                 val bkJson = pdf.bookmark // 获取书签 json
-                val bkList = GsonUtils.fromJson<List<Bookmark>>(bkJson, object : TypeToken<List<Bookmark?>?>() {}.type)
-                if (bkList != null) {
-                    for (bk in bkList) {
-                        LogUtils.e(bk)
-                        val pageId = bk.pageId
-                        bookmarkMap[pageId.toLong()] = bk
-                    }
+                // 用 Class 解析而非匿名 TypeToken：R8 会合并匿名内部类并丢弃泛型签名，
+                // 运行时 TypeToken 会抛 RuntimeException: Missing type parameter.
+                val bkList = GsonUtils.fromJson(bkJson, Array<Bookmark>::class.java)
+                bkList?.forEach { bk ->
+                    LogUtils.e(bk)
+                    val pageId = bk.pageId
+                    bookmarkMap[pageId.toLong()] = bk
                 }
                 binding.appSbProgress.progress = curPage
                 binding.appTvPageinfo.text = (curPage + 1).toString() + " / " + pageCount

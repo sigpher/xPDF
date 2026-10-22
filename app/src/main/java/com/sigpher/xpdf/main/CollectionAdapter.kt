@@ -1,5 +1,6 @@
 package com.sigpher.xpdf.main
 
+import android.view.View
 import com.sigpher.xpdf.R
 import com.sigpher.xpdf.common.App
 import com.sigpher.xpdf.common.CoverHolder
@@ -24,6 +25,8 @@ class CollectionAdapter(
     override val checkBoxId: Int = R.id.app_cb
     override val emptyText: CharSequence = App.getContext().getString(R.string.app_have_no_all)
     override val emptyIcon: Int = R.drawable.app_img_all
+
+    override fun createHolder(itemView: View): CoverHolder = CoverHolder(itemView)
 
     override fun convert(helper: CoverHolder, item: PDF) {
         helper.tvTitle.text = item.name
