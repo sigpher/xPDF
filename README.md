@@ -4,7 +4,7 @@
 
 - 应用名：`xPDF`
 - 包名（applicationId）：`com.sigpher.xpdf`
-- 版本：`0.2.0`（versionCode `3`，本仓库首个公开发布版本为 `0.1.0`，版本线已重置，见「版本变更」）
+- 版本：`0.3.0`（versionCode `4`，本仓库首个公开发布版本为 `0.1.0`，版本线已重置，见「版本变更」）
 - 最低支持：Android 5.0（API 21），compileSdk / targetSdk 34
 - 产物：**release**（约 5.1 MB，仅 arm64-v8a）与 **debug** 两个变体（`app/build/outputs/apk/release/app-release.apk`）
 
@@ -159,6 +159,17 @@ xPDF/
 > 3.0.0 起不再申请 `INTERNET` 等网络权限，应用完全离线运行；targetSdk 34 起也不再声明 `READ/WRITE_EXTERNAL_STORAGE`。
 
 ## 版本变更
+
+### 0.3.0（versionCode 4）
+
+修复阅读器「目录」页书签重复叠加的问题，并清理依赖与构建配置（功能集合不变）：
+
+- **修复目录书签叠加 / 重复建树**：`ContentFragment.initContent()` 原先在书签循环体内每次都新建 `TreeNode.root()` 与 `AndroidTreeView` 并 `addView`，且从不清理容器；而 `PreviewActivity.initContentAndBookmark()` 每次重新加载文档都会调用 `update()`，导致每刷新一次就多出一整棵树、同一条书签重复堆叠。现改为渲染前 `removeAllViews()`，所有书签共用一棵树、只挂一个 `AndroidTreeView`，顶层与子节点共用 `buildNode()` 递归构建
+- **修复视图未就绪丢内容**：`update()` 早于 `onViewCreated` 到达时 binding 为 null 会崩溃；现在先缓存数据，`onViewCreated` 补一次渲染，`onDestroyView` 先摘树再释放 binding
+- **依赖清理**：移除 `androidx.multidex`（minSdk 21 起系统原生支持 multidex，同时删除 `MultiDex.install` 与 `multiDexEnabled`）与重复声明的 `kotlinx-coroutines-core`（由 `coroutines-android` 传递提供）
+- **构建配置**：`packagingOptions` → `packaging`（AGP 8 废弃写法，`packaging` 代替）；删除模块级冗余 `repositories`；`gradle.properties` 开启 `org.gradle.parallel` / `org.gradle.caching`，并注明 Jetifier 不能关闭的原因（`parallaxbacklayout 1.1.9` 仍引用 `android.support.v4.view.ViewCompat` 与 `android.support.annotation.IntDef`）
+- **混淆规则精简**：删除 WebView、okhttp/okio/squareup/findbugs 等已无对应依赖的死规则，保留 pdfium / greenDAO / Gson / EventBus / Glide / RenderScript 规则
+- 体积：APK 5,435,511 → 5,428,801 字节（约 5.18 MB）
 
 ### 0.2.0（versionCode 3）
 

@@ -3,7 +3,6 @@ package com.sigpher.xpdf.common
 import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
-import androidx.multidex.MultiDex
 import com.blankj.utilcode.util.SPStaticUtils
 import com.github.anzewei.parallaxbacklayout.ParallaxHelper
 import com.sigpher.xpdf.common.greendao.DaoMaster
@@ -13,11 +12,6 @@ import com.sigpher.xpdf.common.utils.ShortcutUtils
  * @author sigpher
  */
 class App : Application() {
-
-    override fun attachBaseContext(base: Context) {
-        super.attachBaseContext(base)
-        MultiDex.install(base)
-    }
 
     override fun onCreate() {
         super.onCreate()

@@ -22,103 +22,90 @@ class ContentFragment : CommonFragment(), IContentFragInterface {
 
     private val contentList: MutableList<PdfDocument.Bookmark> = ArrayList()
 
-    override fun update(collection: MutableCollection<PdfDocument.Bookmark>) {
-        contentList.clear()
-        contentList.addAll(collection)
-        initContent()
-    }
-
     private var _binding: AppFragmentContentBinding? = null
 
     private val binding get() = _binding!!
+
+    override fun update(collection: MutableCollection<PdfDocument.Bookmark>) {
+        contentList.clear()
+        contentList.addAll(collection)
+        // 视图尚未就绪时只缓存数据，等 onViewCreated 后再渲染
+        initContent()
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = AppFragmentContentBinding.inflate(inflater, container, false)
         return binding.root
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.appRecyclerItemEmptyview.appItvPlaceholder.setText(R.string.app_have_no_content)
-        binding.appRecyclerItemEmptyview.appItvPlaceholder.setTextColor(App.getContext().resources.getColor(R.color.app_content_bookmark_primary))
-        binding.appRecyclerItemEmptyview.appItvPlaceholder.setIconTop(R.drawable.app_ic_action_content_white)
-        binding.appRecyclerItemEmptyview.appItvPlaceholder.alpha = 0.6f
+        binding.appRecyclerItemEmptyview.appItvPlaceholder.apply {
+            setText(R.string.app_have_no_content)
+            setTextColor(App.getContext().resources.getColor(R.color.app_content_bookmark_primary))
+            setIconTop(R.drawable.app_ic_action_content_white)
+            alpha = 0.6f
+        }
+        // 数据可能早于视图到达，这里补一次渲染
+        initContent()
+    }
+
+    override fun onDestroyView() {
+        // 先摘掉树，避免视图销毁后仍被 AndroidTreeView 持有
+        _binding?.appLl?.removeAllViews()
+        _binding = null
+        super.onDestroyView()
     }
 
     private fun initContent() {
-        if (contentList.isNotEmpty()) {
-            binding.appRecyclerItemEmptyview.appItvPlaceholder.visibility = View.GONE
-            for (bk in contentList) {
-                val icon = if (bk.hasChildren()) R.drawable.app_ic_can_down_white else R.drawable.app_ic_cannot_down_white
-                val title = bk.title
-                val pageId = (bk.pageIdx + 1).toString()
-                //创建根节点
-                val root = TreeNode.root()
-                //创建节点item
-                val iconTreeItem = IconTreeItem(icon, title, pageId)
-                // 点击监听
-                val holder = ContentHolder(activity)
-                holder.setOnIconTapListener(object : ContentHolder.OnIconTapListener {
-                    override fun onIconTap(node: TreeNode) {
-                        holder.treeView.toggleNode(node)
-                    }
-                })
-                holder.setOnNodeTapListener(object : ContentHolder.OnNodeTapListener {
-                    override fun onNodeTap(pageId: Int) {
-                        (activity as IActivityInterface).onJumpTo(pageId)
-                    }
-                })
-                val cur = TreeNode(iconTreeItem).setViewHolder(holder)
-                if (bk.hasChildren()) {
-                    addChild(cur, bk.children)
-                }
-                root.addChild(cur)
-                //创建树形视图
-                val treeView = AndroidTreeView(activity, root)
-                //设置树形视图开启默认动画
-                treeView.setDefaultAnimation(false)
-                //设置树形视图默认的样式
-                treeView.setDefaultContainerStyle(R.style.AppTreeNode)
-                //设置树形视图默认的ViewHolder
-                treeView.setDefaultViewHolder(ContentHolder::class.java)
-                //将树形视图添加到layout中
-                binding.appLl.addView(treeView.view)
-            }
-        } else {
-            binding.appRecyclerItemEmptyview.appItvPlaceholder.visibility = View.VISIBLE
+        val b = _binding ?: return
+        // 每次刷新先清空容器，否则重复调用 update() 会把整棵树叠加在一起
+        b.appLl.removeAllViews()
+        if (contentList.isEmpty()) {
+            b.appRecyclerItemEmptyview.appItvPlaceholder.visibility = View.VISIBLE
+            return
         }
+        b.appRecyclerItemEmptyview.appItvPlaceholder.visibility = View.GONE
+
+        // 所有书签共用一棵树、一个 AndroidTreeView
+        val root = TreeNode.root()
+        for (bk in contentList) {
+            root.addChild(buildNode(bk))
+        }
+        val treeView = AndroidTreeView(activity, root).apply {
+            // 关闭默认动画
+            setDefaultAnimation(false)
+            // 默认样式与 ViewHolder
+            setDefaultContainerStyle(R.style.AppTreeNode)
+            setDefaultViewHolder(ContentHolder::class.java)
+        }
+        b.appLl.addView(treeView.view)
     }
 
-    private fun addChild(parent: TreeNode, childList: List<PdfDocument.Bookmark>) {
-        for (bk in childList) {
-            val icon = if (bk.hasChildren()) R.drawable.app_ic_can_down_white else R.drawable.app_ic_cannot_down_white
-            val title = bk.title
-            val pageId = (bk.pageIdx + 1).toString()
-            //创建节点item
-            val iconTreeItem = IconTreeItem(icon, title, pageId)
-            // 点击监听
-            val holder = ContentHolder(activity)
-            holder.setOnIconTapListener(object : ContentHolder.OnIconTapListener {
-                override fun onIconTap(node: TreeNode) {
-                    holder.treeView.toggleNode(node)
-                }
-            })
-            holder.setOnNodeTapListener(object : ContentHolder.OnNodeTapListener {
-                override fun onNodeTap(pageId: Int) {
-                    (activity as IActivityInterface).onJumpTo(pageId)
-                }
-            })
-            val cur = TreeNode(iconTreeItem).setViewHolder(holder)
-            if (bk.hasChildren()) {
-                addChild(cur, bk.children)
+    /**
+     * 递归构建单个书签节点，顶层与子节点共用同一套 ViewHolder 绑定逻辑
+     */
+    private fun buildNode(bk: PdfDocument.Bookmark): TreeNode {
+        val icon = if (bk.hasChildren()) R.drawable.app_ic_can_down_white else R.drawable.app_ic_cannot_down_white
+        val holder = ContentHolder(activity)
+        holder.setOnIconTapListener(object : ContentHolder.OnIconTapListener {
+            override fun onIconTap(node: TreeNode) {
+                holder.treeView.toggleNode(node)
             }
-            parent.addChild(cur)
+        })
+        holder.setOnNodeTapListener(object : ContentHolder.OnNodeTapListener {
+            override fun onNodeTap(pageId: Int) {
+                (activity as IActivityInterface).onJumpTo(pageId)
+            }
+        })
+        val pageId = (bk.pageIdx + 1).toString()
+        val node = TreeNode(IconTreeItem(icon, bk.title, pageId)).setViewHolder(holder)
+        if (bk.hasChildren()) {
+            for (child in bk.children) {
+                node.addChild(buildNode(child))
+            }
         }
+        return node
     }
 
     companion object {

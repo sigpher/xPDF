@@ -20,10 +20,10 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
-# AndroidPdfViewer
+# AndroidPdfViewer（pdfium 原生绑定）
 -keep class com.shockwave.**
 
-# RealtimeBlurView
+# RealtimeBlurView（收藏夹重命名界面的模糊背景，内部依赖 RenderScript）
 -keep class androidx.renderscript.** { *; }
 
 # GreenDAO
@@ -159,32 +159,9 @@
 # @Keep 注解（androidx）由 R8 原生识别，这里仅保留类本身避免误删
 -keep class androidx.annotation.Keep
 
-# >>>>>>>>>>>> webview相关
--dontwarn android.webkit**
-
-# WebView(可选)
--keepclassmembers class * extends android.webkit.WebView {
-   public *;
-}
-# WebView的复杂操作
--keepclassmembers class * extends android.webkit.WebViewClient {
-     public void *(android.webkit.WebView,java.lang.String,android.graphics.Bitmap);
-     public boolean *(android.webkit.WebView,java.lang.String);
-}
--keepclassmembers class * extends android.webkit.WebChromeClient {
-     public void *(android.webkit.WebView,java.lang.String);
-}
-
-# 与JS交互
--keepattributes SetJavaScriptEnabled
--keepattributes JavascriptInterface
-
-# 保留与JS交互接口 , API17+
--keepclassmembers class * {
-    @android.webkit.JavascriptInterface <methods>;
-}
-
--dontwarn org.apache.**
+# >>>>>>>>>>>> 说明
+# 本项目不使用 WebView（无 JS 交互），相关 keep 规则已移除；如后续引入 WebView 需补回
+# WebView / WebViewClient / WebChromeClient / @JavascriptInterface 的保留规则。
 
 
 
@@ -192,19 +169,7 @@
 
 # ============================== 框架中使用到的第三方依赖 begin ==============================
 
-# >>>>>>>>>>>> squareup全家桶
--keep public class com.squareup.** { *;}
--dontwarn com.squareup**
-
-# >>>>>>>>>>>> okdownload / findbugs 注解（base 库传递依赖，运行时不需要）
--dontwarn edu.umd.cs.findbugs.annotations.**
-
-# >>>>>>>>>>>> okhttp & okio
--dontwarn okhttp3.**
--dontwarn okio.**
--dontwarn javax.annotation.**
--dontwarn org.conscrypt.**
--keepnames class okhttp3.internal.publicsuffix.PublicSuffixDatabase
+# 说明：okhttp / okio / retrofit 等网络库已不在依赖树中，对应 keep/dontwarn 规则已移除
 
 # >>>>>>>>>>>> Gson
 -keep public class com.google.gson.**
