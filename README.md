@@ -4,7 +4,7 @@
 
 - 应用名：`xPDF`
 - 包名（applicationId）：`com.sigpher.xpdf`
-- 版本：`0.3.0`（versionCode `4`，本仓库首个公开发布版本为 `0.1.0`，版本线已重置，见「版本变更」）
+- 版本：`0.3.1`（versionCode `5`，本仓库首个公开发布版本为 `0.1.0`，版本线已重置，见「版本变更」）
 - 最低支持：Android 5.0（API 21），compileSdk / targetSdk 34
 - 产物：**release**（约 5.1 MB，仅 arm64-v8a）与 **debug** 两个变体（`app/build/outputs/apk/release/app-release.apk`）
 
@@ -159,6 +159,19 @@ xPDF/
 > 3.0.0 起不再申请 `INTERNET` 等网络权限，应用完全离线运行；targetSdk 34 起也不再声明 `READ/WRITE_EXTERNAL_STORAGE`。
 
 ## 版本变更
+
+### 0.3.1（versionCode 5）
+
+纯代码现代化（Java → Kotlin），功能与界面无变化：
+
+- **Kotlin 化 5 个文件**（560 行 Java → 412 行 Kotlin）：
+  - `common/widgets/NewViewPager`：保留 `(Context)` / `(Context, AttributeSet)` 构造器；`setScrollable(Boolean)` 仍为普通函数（`MainActivity` 以函数形式调用）
+  - `common/widgets/BorderImageView`：常量与 `Paint` 初始化顺序保持；`dp2px` 返回值显式 `toFloat()`；边框绘制位置与原有实现逐像素一致
+  - `common/widgets/ImageTextView`：15 组 getter/setter 收敛为属性；`setIconLeft/Right/Top/Bottom(Int)` 重载保留，调用点 `setIconTop(R.drawable.x)` 不受影响
+  - `common/bean/Cover`：字段改为 `@JvmField`，保持 Java 字段访问语义
+  - `common/DataManager`：改为 `object` 单例，`synchronized(this)`；对外仍提供 `getPdfList()` / `getCoverList()` 等函数形式，调用点零改动；列表 getter 返回 `MutableList` 以保持原平台类型的可变行为
+- **保留 Java**：greenDAO 生成的 `*Dao` / `DaoMaster` / `DaoSession`（schema 变更会重新生成）、`MigrationHelper`（反射 + 变参泛型）、`PDF` / `Collection` / `RecentPDF` 实体（`@Entity` + Parcelable + 混淆字段名约束），以及 `android-pdf-viewer` 模块（保持与上游同构便于合并）
+- 体积：APK 5,428,801 → 5,428,748 字节
 
 ### 0.3.0（versionCode 4）
 
