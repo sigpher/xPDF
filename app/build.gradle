@@ -18,7 +18,9 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
         // 只保留中英文资源，裁掉三方库带入的其他语言，缩小 resources.arsc
-        resourceConfigurations += ['en', 'zh']
+        // 注意：裁剪按 qualifier 精确匹配，只写 'zh' 匹配不到 values-zh-rCN 等目录，
+        // 会把中文资源整包裁掉（APK 内只剩 en）。这里与 res/values-zh-* 目录一一对应。
+        resourceConfigurations += ['en', 'zh-rCN', 'zh-rTW', 'zh-rHK', 'zh-rMO', 'zh-rSG']
 
         ndk {
             // 仅保留 arm64-v8a，减小包体

@@ -86,7 +86,9 @@ gradlew.bat :app:assembleDebug
 ./gradlew :app:assembleRelease
 ```
 
-产物位于 `app/build/outputs/apk/release/app-release.apk`，仅包含 `lib/arm64-v8a/` 下的 so。Release 会执行混淆与资源压缩（`minifyEnabled true` + `shrinkResources true`），并把资源语言裁剪到中英文（`resourceConfigurations`），配置见 `app/proguard-rules.pro`。
+产物位于 `app/build/outputs/apk/release/app-release.apk`，仅包含 `lib/arm64-v8a/` 下的 so。Release 会执行混淆与资源压缩（`minifyEnabled true` + `shrinkResources true`），并把资源语言裁剪到中英文（`resourceConfigurations`）。
+
+> 语言裁剪按 qualifier **精确匹配**：必须逐个写出带地区的限定符（`en`、`zh-rCN`、`zh-rTW`、`zh-rHK`、`zh-rMO`、`zh-rSG`），只写 `zh` 匹配不到 `values-zh-rCN` 等目录，中文会被整包裁掉、APK 里只剩 `en`。改动后可用 `aapt dump configurations app-release.apk` 确认输出里存在 `zh-rCN`。
 
 > debug 变体 applicationId 为 `com.sigpher.xpdf.dev`，应用名 `xPDF Dev`，并接入 LeakCanary 2.14。
 >
