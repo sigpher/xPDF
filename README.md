@@ -4,7 +4,7 @@
 
 - 应用名：`xPDF`
 - 包名（applicationId）：`com.sigpher.xpdf`
-- 版本：`3.1.0`（versionCode `34`）
+- 版本：`0.1.0`（versionCode `1`，本仓库首个公开发布版本，版本线已重置，见「版本变更」）
 - 最低支持：Android 5.0（API 21），compileSdk / targetSdk 34
 - 产物：**release**（约 5.1 MB，仅 arm64-v8a）与 **debug** 两个变体（`app/build/outputs/apk/release/app-release.apk`）
 
@@ -158,9 +158,9 @@ xPDF/
 
 ## 版本变更
 
-### 3.1.0（versionCode 34）
+### 0.1.0（versionCode 1）
 
-一次性完成工具链、性能、体积与架构四类改造，功能集合与 3.0.0 保持一致（不新增业务功能）。
+本仓库（[sigpher/xPDF](https://github.com/sigpher/xPDF)）首个公开发布版本。版本线由此前的 `3.1.0`（versionCode 34）重置为 `0.1.0`（versionCode 1），相对原 `3.0.0` 一次性完成工具链、性能、体积与架构四类改造，功能集合不变（不新增业务功能）。
 
 **构建工具链**
 
