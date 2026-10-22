@@ -30,6 +30,8 @@ internal class AboutPresenter(view: IAboutView) : IAboutPresenter(view) {
                 "Material Components",
                 "AndroidPdfViewer / PdfiumAndroid",
                 "PdfiumAndroidKt",
+                "ML Kit Language ID",
+                "ML Kit Translation",
                 "Base（内联工具类）")
         val LIBRARY_AUTHOR = arrayOf(
                 "bmelnychuk",
@@ -42,6 +44,8 @@ internal class AboutPresenter(view: IAboutView) : IAboutPresenter(view) {
                 "Google",
                 "barteksc",
                 "legere / johngray1965",
+                "Google",
+                "Google",
                 "AaronZheng / sigpher")
         val LIBRARY_INTRODUCE = arrayOf(
                 "AndroidTreeView. TreeView implementation for android",
@@ -54,6 +58,8 @@ internal class AboutPresenter(view: IAboutView) : IAboutPresenter(view) {
                 "Modular and customizable Material Design UI components for Android",
                 "Android view for displaying PDFs rendered with PdfiumAndroid",
                 "Kotlin bindings for PDFium on Android, continuously maintained (2.0.3)",
+                "On-device language identification, used to pick the translation source language",
+                "On-device neural machine translation, language models are downloaded on demand and run offline",
                 "状态栏工具与 TextWatcher / 点击防抖基类，已内联进 app 源码（Apache-2.0）")
     }
 }

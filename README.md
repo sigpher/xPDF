@@ -45,19 +45,19 @@
 
 | 项目 | 版本 |
 | --- | --- |
-| JDK | **21+**（AGP 9 要求 JDK 17+，但 `io.legere:pdfiumandroid` 的 class 文件是 Java 21 字节码，编译端必须 JDK 21+） |
+| JDK | **两套并存**：Gradle 守护进程跑 **JDK 17**，`java.toolchain` 指定 **JDK 27** 仅用于 `javac`（`io.legere:pdfiumandroid` 是 Java 21 字节码，而 Gradle 9.6 无法在 JDK 27 上运行） |
 | Gradle | 9.6.0（随 wrapper 提供） |
 | Android Gradle Plugin | 9.4.1 |
 | Kotlin | 2.4.10（AGP 9 内置 Kotlin 支持，无需再应用 `org.jetbrains.kotlin.android`） |
 | compileSdkVersion / targetSdkVersion | 37 / 34 |
 | minSdkVersion | 24 |
-| Android SDK | Platform 37 + build-tools 37.0.0 |
+| Android SDK | Platform 37（目录名 `android-37.0` 时需软链为 `android-37`）+ build-tools 37.0.0 |
 
 ## 构建指南
 
 ### 1. 准备 Android SDK
 
-确保已安装 Android SDK Platform 29 与对应 build-tools，并设置环境变量 `ANDROID_SDK_ROOT`。
+确保已安装 Android SDK Platform 37 与 build-tools 37.0.0，并设置环境变量 `ANDROID_SDK_ROOT`；同时准备好 JDK 17（守护进程）与 JDK 27（toolchain）。
 
 ### 2. 配置 `local.properties`
 
@@ -95,13 +95,17 @@ gradlew.bat :app:assembleDebug
 
 > debug 变体 applicationId 为 `com.sigpher.xpdf.dev`，应用名 `xPDF Dev`，并接入 LeakCanary 2.14。
 >
-> 本机存在多个 JDK 时，建议显式覆盖：`gradlew.bat -Dorg.gradle.java.home="<JDK21+ 路径>" :app:assembleRelease`。
+> 本机 `~/.gradle/gradle.properties` 若把 `org.gradle.java.home` 指向 JDK 27，会在解析 `app/build.gradle` 时报 `Unsupported class file major version 71`（Gradle 9.6 的 Groovy 不支持该字节码）。此时用 JDK 17 覆盖守护进程即可，`javac` 仍走 toolchain 27：
+>
+> ```bash
+> gradlew.bat "-Dorg.gradle.java.home=C:\Program Files\Eclipse Adoptium\jdk-17.0.20.101-hotspot" :app:assembleRelease
+> ```
 
 ### 4. 常见构建问题
 
 - **依赖拉取失败**：`parallaxbacklayout`、`atv`、`BaseRecyclerViewAdapterHelper` 等老 AAR 只发布在已停服的 JCenter，工程通过 `https://maven.aliyun.com/repository/public` 镜像解析；若镜像不可用，可把对应 AAR 收进 `app/libs` 或本地 maven 仓库。PDF 引擎已换成 Maven Central 上的 `io.legere:pdfiumandroid:2.0.3`，不再需要 JCenter。
 - **基础库已内联**：原作者的基础库 `com.aaron:base` 只发布在已停服的 JCenter 上，工程此前依赖瘦身 fork `com.github.sigpher.Base:base:1.2.0`；现在已整体移除该 AAR，把 app 实际用到的部分下沉到本仓库——`common/utils` 下的 `StatusBarUtils` / `TextWatcherImpl` / `OnClickListenerImpl` 内联自该库（[sigpher/Base](https://github.com/sigpher/Base)，Apache-2.0），`base_*` 颜色与字号资源迁入 `res/values`，封面加载改为 Glide 直接调用。原先由它传递的 `glide:4.9.0` 与 `utilcodex:1.23.7` 已在 `app/build.gradle` 显式声明，构建时不再需要 JitPack 现场编译或 `publishToMavenLocal`。
-- **JDK 版本报错**：出现 `Unsupported class file major version 65` 时说明 Gradle 跑在 JDK 17 上，需切到 JDK 21+（`~/.gradle/gradle.properties` 里的 `org.gradle.java.home` 优先级高于 `JAVA_HOME`）。
+- **JDK 版本报错**：出现 `Unsupported class file major version 65` 说明 `javac` 跑在 JDK 17 上，需让 toolchain 找到 JDK 27；出现 `major version 71` 则是 Gradle 守护进程跑在了 JDK 27 上（见上一节，用 `-Dorg.gradle.java.home` 指回 JDK 17）。`~/.gradle/gradle.properties` 里的 `org.gradle.java.home` 优先级高于 `JAVA_HOME`。
 - **签名文件不存在**：检查 `local.properties` 中 `STORE_FILE_NAME` 指向的文件是否在 `app/` 目录下（`file(...)` 以模块目录为基准解析）。
 
 ## 工程结构
@@ -117,17 +121,17 @@ xPDF/
 │       │   ├── about/                     # 关于页：版本信息、开源组件清单
 │       │   ├── common/                    # 基础设施
 │       │   │   ├── adapter/               # 列表基类与复用件：BaseListAdapter / CoverGridRenderer / KeywordFilter / ItemTypes
-│       │   │   ├── bean/                  # GreenDAO 实体与数据类：PDF / Collection / Cover / RecentPDF / Shortcut
+│       │   │   ├── bean/                  # GreenDAO 实体与数据类：PDF / Collection / Cover / RecentPDF / Annotation / Shortcut
 │       │   │   ├── event/                 # EventBus 事件（唯一事件通道，LiveDataBus 已删除）
 │       │   │   ├── greendao/              # GreenDAO 生成类（DaoMaster / DaoSession / *Dao）
 │       │   │   ├── utils/                 # 工具类：PDF、图片、快捷方式、状态栏等
 │       │   │   └── widgets/               # 自定义控件：BorderImageView / NewViewPager 等
 │       │   ├── data/                      # SAF 导入管道（ImportPipeline：拷贝 + 封面 + 入库）
 │       │   ├── main/                      # 主界面：最近 / 全部 / 分组 + 搜索
-│       │   ├── preview/                   # 阅读器：翻页、缩放、书签、目录、夜间模式
+│       │   ├── preview/                   # 阅读器：翻页、缩放、书签、目录、夜间模式、长按取词、标注、翻译
 │       │   └── settings/                  # 设置页
 │       └── res/                           # 布局、样式、多语言（含 values-zh-rCN/rHK/rMO/rSG/rTW）
-├── android-pdf-viewer/                    # PDF 渲染库（基于 barteksc/AndroidPdfViewer 3.2.0-beta.1 定制）
+├── android-pdf-viewer/                    # PDF 渲染库（基于 barteksc/AndroidPdfViewer 3.2.0-beta.1 定制，含文本层与选区）
 ├── build.gradle / settings.gradle          # 根构建脚本，根工程名 xPDF
 └── xPDF.plantuml                           # 组件图（可用 PlantUML 预览；包内类图已从仓库移除）
 ```
@@ -137,20 +141,22 @@ xPDF/
 - **架构**：MVP + Repository 雏形。`common/MVP.kt` 定义 `IView` / `IPresenter` 契约（Presenter 支持 `detach()`）；导入等耗时操作统一走 `data/ImportPipeline`（suspend + `Dispatchers.IO`）。
 - **语言**：业务代码已全面 Kotlin 化（事件、Holder、装饰器、UiManager、DialogUtils、GroupingAdapter、Bookmark、PdfUtils、App、实体类与自定义 View 等）；仍保留 Java 的只剩 greenDAO 生成物（`DaoMaster`/`DaoSession`/`*Dao`/`MigrationHelper`/`UpdateOpenHelper`），以及 `android-pdf-viewer` 模块（与上游同构，便于合并）。
 - **UI**：AppCompat + Material Components + `BaseRecyclerViewAdapterHelper`；视图绑定全部迁移到 **ViewBinding**（`kotlin-android-extensions` 已下线）；`ParallaxBackLayout` 提供侧滑返回；`RealtimeBlurView` 实现毛玻璃遮罩。
-- **数据层**：GreenDAO 3.3.0（DAO 作为源码维护，不再用 gradle 插件生成），`schemaVersion 3`；`DataManager` 维护书库内存缓存与「目录 → PDF」索引，启动时在 IO 线程异步加载。
+- **数据层**：GreenDAO 3.3.0（DAO 作为源码维护，不再用 gradle 插件生成），`schemaVersion 4`（新增 `ANNOTATION` 表）；升级策略是「纯增量优先」——`3 → 4` 只执行 `CREATE TABLE/INDEX IF NOT EXISTS`，只有更老的库才走 `MigrationHelper` 整表重建，且必须把所有实体 DAO 传入，否则未传入的表会被丢弃。历史数据迁移开关（`App.LEGACY_DATA_VERSION`）与 schema 版本解耦，避免每次表结构变化都重写整库记录。`DataManager` 维护书库内存缓存与「目录 → PDF」索引，启动时在 IO 线程异步加载。
 - **事件通信**：EventBus 3.3.1。
 - **PDF 渲染**：`android-pdf-viewer` 模块封装 PdfiumAndroidKt（`io.legere:pdfiumandroid:2.0.3`，持续维护、原生库随 NDK 构建），在原生 `PDFView` 基础上增加了滚动监听、显示监听、页切换监听、快照处理等定制能力。
-- **性能**：页面按需渲染 + 滚动节流、封面单次打开生成并压缩为 JPEG、书签角标位图复用、夜间模式免重载、最近阅读列表两次查询完成关联、LeakCanary 仅 debug 生效。
+- **文本层与选区**：`TextPageLoader` 负责打开 / 缓存 pdfium 文本页（LRU 3 页，淘汰即关闭），`TextSelectionManager` 负责长按命中、中英文扩词、首尾手柄拖动与选区绘制；pdfium 调用全部收敛到库内单线程执行器，选区与手柄绘制在文档坐标系内完成，`PDFView` 对外暴露 `textSelectable` / `onTextSelected` / `getPageAt` / `viewToPagePoint` / `pageRectToView` 等 API。
+- **标注与翻译**：标注矩形以 0..1 页面相对坐标存库，经 `onPageOverlay` 回调按当前缩放乘算绘制（横向/纵向翻页通用）；翻译走 ML Kit `language-id` + `translate` 端侧模型，客户端懒初始化，模型按语言对下载后离线推理，失败降级为系统 `ACTION_PROCESS_TEXT`。
+- **性能**：页面按需渲染 + 滚动节流、封面单次打开生成并压缩为 JPEG、书签角标位图复用、夜间模式免重载、最近阅读列表两次查询完成关联、文本页 LRU 复用、翻译客户端懒加载、LeakCanary 仅 debug 生效。
 
 ## 数据与存储
 
 | 内容 | 位置 |
 | --- | --- |
-| 数据库 | 应用私有目录下 `xpdf.db`（GreenDAO，含书籍、分组、书签、封面、最近阅读） |
+| 数据库 | 应用私有目录下 `xpdf.db`（GreenDAO，含书籍、分组、书签、封面、最近阅读、标注 `ANNOTATION`） |
 | PDF 副本 | `getExternalFilesDir/pdfs`（SAF 导入时复制，文件名冲突自动加序号） |
 | 封面 | 应用私有目录下的 `<书名>.jpg`（JPEG，宽度 360） |
 | 备份文件 | `/storage/emulated/0/Android/data/com.sigpher.xpdf/files` |
-| 设置项 | SharedPreferences，`Settings.kt` 首次读取后常驻内存（音量键翻页、点击翻页、状态栏、屏幕常亮、线性布局、快捷缩放、最近数量等） |
+| 设置项 | SharedPreferences，`Settings.kt` 首次读取后常驻内存（音量键翻页、点击翻页、状态栏、屏幕常亮、线性布局、快捷缩放、最近数量、翻译目标语言等） |
 | 文件共享 | `FileProvider`，authority 为 `${applicationId}.fileprovider`，路径已收窄为 `external-files-path` + `cache-path` |
 
 > 由于 applicationId 已改为 `com.sigpher.xpdf`，它被视为全新应用：无法覆盖安装旧版本，旧版本的应用数据与备份也不通用。
@@ -317,6 +323,7 @@ greenDAO 实体类 Kotlin 化，功能与界面无变化（建议覆盖安装后
 - **标注仅本应用可见**：pdfium 2.0.3 未暴露 `FPDFAnnot_*`，标注存本地数据库并叠加渲染，不写入 PDF 文件，其他阅读器看不到。
 - **翻译首次需联网**：ML Kit 端侧模型按语言对下载（依赖 Google Play 服务），无 GMS 设备只能走「用其他应用翻译」；模型就绪后完全离线。
 - **扫描版 PDF 不支持取词**：无文本层页面长按只提示「该页无可提取文本」，未引入 OCR。
+- **备份不含标注**：备份文件只序列化书籍信息（含书签、进度），高亮 / 下划线 / 笔记不参与备份与恢复。
 
 ## 第三方组件
 
@@ -326,6 +333,8 @@ greenDAO 实体类 Kotlin 化，功能与界面无变化（建议覆盖安装后
 | --- | --- | --- |
 | AndroidPdfViewer / PdfiumAndroid | barteksc | PDF 渲染（视图层） |
 | PdfiumAndroidKt | legere / johngray1965 | PDF 渲染（pdfium 绑定，2.0.3） |
+| ML Kit Language ID | Google | 端侧语种识别（选择翻译源语言） |
+| ML Kit Translation | Google | 端侧神经机器翻译（模型按语言对按需下载，离线推理） |
 | AndroidTreeView | bmelnychuk | 树形目录视图 |
 | RealtimeBlurView | mmin18 | 实时模糊遮罩 |
 | ParallaxBackLayout | anzewei | 侧滑返回 |
