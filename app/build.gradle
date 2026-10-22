@@ -13,8 +13,8 @@ android {
         applicationId "com.sigpher.xpdf"
         minSdk 21
         targetSdk 34
-        versionCode 2
-        versionName "0.1.1"
+        versionCode 3
+        versionName "0.2.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
         // 只保留中英文资源，裁掉三方库带入的其他语言，缩小 resources.arsc

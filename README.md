@@ -4,7 +4,7 @@
 
 - 应用名：`xPDF`
 - 包名（applicationId）：`com.sigpher.xpdf`
-- 版本：`0.1.1`（versionCode `2`，本仓库首个公开发布版本为 `0.1.0`，版本线已重置，见「版本变更」）
+- 版本：`0.2.0`（versionCode `3`，本仓库首个公开发布版本为 `0.1.0`，版本线已重置，见「版本变更」）
 - 最低支持：Android 5.0（API 21），compileSdk / targetSdk 34
 - 产物：**release**（约 5.1 MB，仅 arm64-v8a）与 **debug** 两个变体（`app/build/outputs/apk/release/app-release.apk`）
 
@@ -159,6 +159,19 @@ xPDF/
 > 3.0.0 起不再申请 `INTERNET` 等网络权限，应用完全离线运行；targetSdk 34 起也不再声明 `READ/WRITE_EXTERNAL_STORAGE`。
 
 ## 版本变更
+
+### 0.2.0（versionCode 3）
+
+首个「可正常使用」的版本，修复了 0.1.x 在真机上的一批崩溃，并补齐中文与图标：
+
+- **修复启动崩溃**：greenDAO 的 `DaoConfig` 用 `Class.forName(daoClass.getName() + "$Properties")` 反射取字段，R8 保留了内部类原名却重命名了 DAO 类，抛 `DaoException: Could not init DAOConfig`；用 `-keepnames` 固定 DAO 类名并保留 `createTable` / `dropTable`
+- **修复空书库崩溃**：`BaseQuickAdapter.getEmptyView()` 返回内部 `FrameLayout` 容器，原代码把它当布局根 bind，抛 `ClassCastException`；改为持有自己 inflate 的 binding
+- **修复导入后崩溃（且之后每次启动都崩）**：BRVAH 用反射读泛型参数实例化 `ViewHolder`，R8 合并基类后退化成通用 `BaseViewHolder`，`convert()` 的强制转换抛 `ClassCastException`；改为抽象工厂 `createHolder()` 自建
+- **修复打开 PDF 崩溃**：书签 JSON 用匿名 `TypeToken<List<Bookmark>>` 解析，R8 合并匿名内部类后泛型签名丢失，抛 `Missing type parameter`；改用 `Array<Bookmark>::class.java` 解析
+- **修复封面不生成**：`PdfUtils.renderPage` 用 `RGB_565` 位图调用 `PdfRenderer.Page.render`，系统抛 `Unsupported pixel format` 且异常被吞；改用 `ARGB_8888`
+- **修复界面始终英文**：`resourceConfigurations` 按 qualifier 精确匹配，只写 `zh` 匹配不到 `values-zh-rCN` 等目录，中文被整包裁掉；改为逐个列出 `zh-rCN` / `zh-rTW` / `zh-rHK` / `zh-rMO` / `zh-rSG`
+- **新增启动图标**：橙色 xPDF 设计，改用自适应图标（API 26+）+ 多密度 WebP，debug 变体带 Dev 角标
+- **书签 / 备份 JSON 字段名保留**：Gson 按字段名读写，新增 `<fields>` 保留规则，避免升级后旧书签、旧备份读不回来
 
 ### 0.1.1（versionCode 2）
 
